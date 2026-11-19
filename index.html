@@ -1,0 +1,2369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mind the Gap</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
+<style>
+/* Layout: a bright sky-blue play area. The board with scenery is on the left, a big question card on the right (stacked on tablets in portrait, question first). */
+:root {
+  --bg: #e6f3ff;
+  --surface: #ffffff;
+  --ink: #1b2a4a;
+  --muted: #4f5f80;
+  --rule: #cfe0f3;
+  --accent: #ff5a3c;
+  --on-accent: #ffffff;
+  --good: #1c9a52;
+  --good-bg: #d9f5e4;
+  --bad: #d63a3a;
+  --bad-bg: #fde4e1;
+  --line: #2b3a5c;
+  --station: #ffffff;
+  --t1: #ff5a3c; --t1on: #ffffff;
+  --t2: #2f7df6; --t2on: #ffffff;
+  --t3: #ffbf1f; --t3on: #1b2a4a;
+  --t4: #8a5cf6; --t4on: #ffffff;
+  --sky1: #9fd4ff; --sky2: #e4f4ff;
+  --hill1: #7fd68b; --hill2: #55bd73; --cloud: #ffffff;
+  --gold: #ffbf1f; --warn: #ff9a1f;
+  --font-display: "Fredoka", "Trebuchet MS", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1830; --surface: #1a2747; --ink: #eef3ff; --muted: #a4b3d3; --rule: #2d3d63;
+    --accent: #ff7a5f; --on-accent: #1f0e0a;
+    --good: #5bd08c; --good-bg: #123826; --bad: #ff8f84; --bad-bg: #43201f;
+    --line: #9db4de; --station: #1a2747;
+    --t1: #ff7a5f; --t1on: #1f0e0a; --t2: #5b9bff; --t2on: #07142e;
+    --t3: #ffcf4d; --t3on: #1b2a4a; --t4: #a283ff; --t4on: #140a33;
+    --sky1: #1c2f5e; --sky2: #2c4580; --hill1: #2c7a53; --hill2: #1f6443; --cloud: #4a5f94;
+    --gold: #ffcf4d; --warn: #ffb24d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1830; --surface: #1a2747; --ink: #eef3ff; --muted: #a4b3d3; --rule: #2d3d63;
+  --accent: #ff7a5f; --on-accent: #1f0e0a;
+  --good: #5bd08c; --good-bg: #123826; --bad: #ff8f84; --bad-bg: #43201f;
+  --line: #9db4de; --station: #1a2747;
+  --t1: #ff7a5f; --t1on: #1f0e0a; --t2: #5b9bff; --t2on: #07142e;
+  --t3: #ffcf4d; --t3on: #1b2a4a; --t4: #a283ff; --t4on: #140a33;
+  --sky1: #1c2f5e; --sky2: #2c4580; --hill1: #2c7a53; --hill2: #1f6443; --cloud: #4a5f94;
+  --gold: #ffcf4d; --warn: #ffb24d;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.45 var(--font-body);
+  padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+h1, h2, h3, legend { font-family: var(--font-display); font-weight: 700; letter-spacing: .01em; margin: 0; text-wrap: balance; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand h1 { font-size: 2rem; line-height: 1; }
+.brand p { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
+.mark { width: 44px; height: 44px; flex: none; }
+
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; }
+
+.btn { border: 2px solid var(--rule); background: var(--surface); border-radius: 10px; padding: 10px 18px; font-weight: 600; }
+.btn:hover { border-color: var(--ink); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.big { font-size: 1.15rem; padding: 14px 28px; }
+.btn.ghost { background: transparent; }
+
+/* Setup */
+.setup { max-width: 780px; margin: 0 auto; display: grid; gap: 22px; }
+.setup h2 { font-size: 2.2rem; line-height: 1.05; }
+.lede { margin: 6px 0 0; color: var(--muted); max-width: 60ch; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+legend { font-size: 1.15rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 0; margin-bottom: 10px; }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg button { min-width: 56px; padding: 8px 16px; border: 2px solid var(--rule); border-radius: 10px; background: var(--surface); font-weight: 600; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.names { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-top: 12px; }
+.nameField { display: flex; align-items: center; gap: 8px; border: 2px solid var(--rule); border-radius: 10px; padding: 6px 10px; background: var(--bg); }
+.nameField input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 4px 0; }
+.nameField input:focus { outline: none; }
+.nameField:focus-within { border-color: var(--accent); }
+.dot { width: 14px; height: 14px; border-radius: 50%; flex: none; background: var(--tc); }
+.tk1 { --tc: var(--t1); --tcon: var(--t1on); }
+.tk2 { --tc: var(--t2); --tcon: var(--t2on); }
+.tk3 { --tc: var(--t3); --tcon: var(--t3on); }
+.tk4 { --tc: var(--t4); --tcon: var(--t4on); }
+.topics { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.topic { display: flex; align-items: center; gap: 10px; border: 2px solid var(--rule); border-radius: 10px; padding: 8px 12px; background: var(--bg); cursor: pointer; }
+.topic:has(input:checked) { border-color: var(--ink); background: var(--surface); }
+.topic input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
+.topic small { margin-left: auto; color: var(--muted); }
+.mini { display: flex; gap: 8px; margin-top: 10px; }
+.mini button { background: none; border: 0; padding: 4px 0; color: var(--muted); text-decoration: underline; font-weight: 500; }
+.rules { margin: 0; padding: 12px 14px; border-radius: 10px; background: var(--bg); color: var(--muted); font-size: .95rem; }
+.err { color: var(--bad); margin: 0; min-height: 1.2em; font-weight: 600; }
+
+/* Game */
+.layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chip { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 10px; background: var(--surface); border: 2px solid var(--rule); font-weight: 600; }
+.chip.active { border-color: var(--tc); box-shadow: 0 0 0 2px var(--tc); }
+.chip .st { font-weight: 500; color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.chip .sk { font-size: .8rem; padding: 1px 7px; border-radius: 99px; background: var(--ink); color: var(--bg); }
+.board { padding: 12px; }
+#board { display: block; width: 100%; height: auto; }
+#board text { font-family: var(--font-body); }
+.track { fill: none; stroke: var(--line); stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
+.stn { fill: var(--station); stroke: var(--line); stroke-width: 4.5; }
+.stn.bonus { fill: var(--good); stroke: var(--good); }
+.stn.trap { fill: var(--ink); stroke: var(--ink); }
+.stn.end { fill: var(--accent); stroke: var(--accent); }
+.stn.begin { fill: var(--ink); stroke: var(--ink); }
+.snum { fill: var(--ink); font-size: 15px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
+.slab { fill: #fff; font-size: 15px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+.begin + .slab { fill: var(--bg); }
+.end + .slab { fill: var(--on-accent); }
+.trap + .slab { fill: var(--bg); }
+.slab.sm { font-size: 10.5px; letter-spacing: .02em; }
+.token { transition: transform .26s ease; }
+.token circle { fill: var(--tc); stroke: var(--surface); stroke-width: 3; }
+.token text { fill: var(--tcon); font-size: 14px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+.token.active circle { stroke: var(--ink); stroke-width: 3.5; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 10px 4px 2px; color: var(--muted); font-size: .9rem; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+.sw.b { background: var(--good); } .sw.t { background: var(--ink); } .sw.n { background: var(--station); border: 3px solid var(--line); }
+
+.qCol { display: grid; gap: 14px; position: sticky; top: 12px; }
+.turn { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; }
+.turn b { font-family: var(--font-display); font-size: 1.5rem; }
+.timer { display: flex; align-items: center; gap: 10px; }
+.timer .bar { flex: 1; height: 8px; border-radius: 99px; background: var(--rule); overflow: hidden; }
+.timer i { display: block; height: 100%; width: 100%; background: var(--accent); transform-origin: left; }
+.timer span { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 2ch; text-align: right; }
+.pill { justify-self: start; text-transform: uppercase; letter-spacing: .08em; font-size: .78rem; font-weight: 600; padding: 4px 10px; border-radius: 99px; background: var(--bg); color: var(--muted); border: 1px solid var(--rule); }
+.qtext { font-family: var(--font-body); font-weight: 600; font-size: clamp(1.4rem, 1rem + 1.6vw, 2.1rem); line-height: 1.25; letter-spacing: 0; }
+.blank { display: inline-block; min-width: 3.4em; border-bottom: 4px solid var(--accent); margin: 0 .15em; vertical-align: baseline; height: 1em; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.opt { display: flex; align-items: center; gap: 10px; min-height: 64px; text-align: left; padding: 10px 12px; border: 2px solid var(--rule); border-radius: 10px; background: var(--bg); font-size: 1.15rem; font-weight: 500; }
+.opt .k { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; background: var(--ink); color: var(--bg); font-weight: 700; font-size: .9rem; }
+.opt:hover:not(:disabled) { border-color: var(--ink); }
+.opt:disabled { cursor: default; }
+.opt.correct { background: var(--good-bg); border-color: var(--good); }
+.opt.correct .k { background: var(--good); color: #fff; }
+.opt.wrong { background: var(--bad-bg); border-color: var(--bad); }
+.opt.wrong .k { background: var(--bad); color: #fff; }
+.opt.dim { opacity: .55; }
+.feedback { padding: 12px 14px; border-radius: 10px; display: grid; gap: 4px; }
+.feedback.good { background: var(--good-bg); border: 1px solid var(--good); }
+.feedback.bad { background: var(--bad-bg); border: 1px solid var(--bad); }
+.feedback strong { font-family: var(--font-display); font-size: 1.4rem; line-height: 1.1; }
+.feedback .tip { color: var(--muted); font-style: normal; font-size: .95rem; }
+.feedback .extra { font-weight: 600; }
+
+/* End */
+.end-card { max-width: 820px; margin: 0 auto; display: grid; gap: 22px; }
+.end-card h2 { font-size: 2.6rem; line-height: 1.05; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.review { display: grid; gap: 8px; }
+.rrow { display: grid; grid-template-columns: minmax(120px, 190px) 1fr 54px; gap: 12px; align-items: center; }
+.rbar { height: 12px; border-radius: 99px; background: var(--rule); overflow: hidden; }
+.rbar i { display: block; height: 100%; background: var(--good); }
+.rbar i.low { background: var(--bad); }
+.rbar i.mid { background: var(--t3); }
+.rnum { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .qCol { position: static; order: -1; }
+}
+@media (max-width: 560px) {
+  .opts { grid-template-columns: 1fr; }
+  .rrow { grid-template-columns: 1fr 60px; }
+  .rrow .rbar { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .token { transition: none; } }
+
+[hidden] { display: none !important; }
+.typebox, .orderbox { display: grid; gap: 12px; }
+.ansrow { display: flex; flex-wrap: wrap; gap: 10px; }
+.ansin { flex: 1; min-width: 11rem; font: inherit; font-size: 1.3rem; padding: 12px 14px; border: 2px solid var(--rule); border-radius: 10px; background: var(--bg); color: var(--ink); }
+.ansin:focus { outline: none; border-color: var(--accent); }
+.ansin.correct { border-color: var(--good); background: var(--good-bg); }
+.ansin.wrong { border-color: var(--bad); background: var(--bad-bg); }
+.oline { min-height: 68px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; padding: 10px; border: 2px dashed var(--rule); border-radius: 10px; }
+.oline.correct { border: 2px solid var(--good); background: var(--good-bg); }
+.oline.wrong { border: 2px solid var(--bad); background: var(--bad-bg); }
+.oline .ph { color: var(--muted); align-self: center; }
+.obank { display: flex; flex-wrap: wrap; gap: 8px; min-height: 48px; }
+.wtile { min-height: 46px; padding: 8px 14px; border: 2px solid var(--ink); border-radius: 8px; background: var(--surface); font-size: 1.15rem; font-weight: 600; }
+.wtile:hover:not(:disabled) { background: var(--bg); }
+.wtile:disabled { cursor: default; }
+.oline .wtile { background: var(--ink); color: var(--bg); }
+/* v2: individual play, results code, teacher panel */
+.fields { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field > span { font-size: .85rem; font-weight: 600; color: var(--muted); }
+.field input, .field select, .codebox { width: 100%; min-width: 0; border: 2px solid var(--rule); border-radius: 10px; padding: 10px 12px; background: var(--bg); color: var(--ink); font: inherit; }
+.field input:focus, .field select:focus, .codebox:focus { outline: none; border-color: var(--accent); }
+.field.inline { grid-auto-flow: column; align-items: center; gap: 8px; }
+.field.inline select { width: auto; min-width: 8rem; padding: 8px 10px; }
+.codebox { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .85rem; line-height: 1.4; resize: vertical; word-break: break-all; }
+.codeblock { display: grid; gap: 10px; padding: 16px; border: 2px dashed var(--rule); border-radius: 12px; background: var(--bg); }
+.codeblock h3, .tsec h3 { font-size: 1.5rem; }
+.msg { font-weight: 600; color: var(--muted); }
+.msg.ok { color: var(--good); }
+.msg.bad { color: var(--bad); }
+.tpanel { display: grid; gap: 16px; }
+.tsec { display: grid; gap: 14px; }
+.tbar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+.tctl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.acc { display: inline-flex; align-items: center; gap: 8px; }
+.acc .rbar { width: 80px; }
+tr.srow { cursor: pointer; }
+tr.srow:hover td { background: var(--bg); }
+tr.sdetail td { white-space: normal; background: var(--bg); }
+.tchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tchip { padding: 3px 10px; border-radius: 99px; border: 1px solid var(--rule); background: var(--surface); font-size: .85rem; font-variant-numeric: tabular-nums; }
+.tchip.low { border-color: var(--bad); background: var(--bad-bg); }
+.tchip.ok { border-color: var(--good); background: var(--good-bg); }
+.mrow { display: grid; grid-template-columns: 3ch 1fr; gap: 12px; align-items: start; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+.mrow b { font-family: var(--font-display); font-size: 1.4rem; line-height: 1.1; text-align: right; }
+.mrow small { display: block; color: var(--muted); }
+@media (max-width: 560px) {
+  .fields { grid-template-columns: 1fr; }
+}
+
+/* v4: visual pass for 1º ESO */
+body { font-weight: 600; }
+h1, h2, h3, legend, .qtext { font-family: var(--font-display); font-weight: 600; letter-spacing: 0; }
+.brand h1 { font-size: 2.1rem; }
+.card { border: 2px solid var(--rule); border-radius: 22px; }
+.btn { border-radius: 14px; border-width: 3px; font-weight: 800; }
+.btn.primary { box-shadow: 0 4px 0 rgba(0, 0, 0, .2); }
+.btn.primary:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0, 0, 0, .2); }
+.lede { font-weight: 600; }
+
+.hero { padding: 20px; border-radius: 18px; background: linear-gradient(180deg, var(--sky1), var(--sky2)); }
+.hero-art { font-size: 2rem; letter-spacing: .35rem; margin-bottom: 6px; }
+.hero h2 { font-size: 2.4rem; }
+.hero .lede { color: var(--ink); }
+
+.avatars { display: flex; flex-wrap: wrap; gap: 10px; }
+.avbtn { width: 66px; height: 66px; font-size: 2.1rem; line-height: 1; border-radius: 18px; border: 3px solid var(--rule); background: var(--surface); }
+.avbtn:hover { border-color: var(--ink); }
+.avbtn[aria-pressed="true"] { border-color: var(--accent); background: var(--bg); box-shadow: 0 0 0 3px var(--accent); }
+
+.topic { border-radius: 14px; border-width: 3px; font-weight: 700; }
+.ticon { font-size: 1.5rem; line-height: 1; }
+
+.rules { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; background: none; color: var(--ink); }
+.rchip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 99px; background: var(--surface); border: 2px solid var(--rule); font-weight: 700; font-size: .95rem; }
+.rchip b { font-family: var(--font-display); font-size: 1.15rem; }
+.remo { font-size: 1.2rem; }
+
+/* HUD */
+.hud { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-radius: 20px; background: var(--surface); border: 2px solid var(--rule); width: 100%; }
+.hud .av { width: 54px; height: 54px; flex: none; display: grid; place-items: center; font-size: 2rem; line-height: 1; border-radius: 50%; background: var(--bg); border: 3px solid var(--accent); }
+.hud .prog { flex: 1; min-width: 0; display: grid; gap: 4px; }
+.hud .nm { font-family: var(--font-display); font-size: 1.25rem; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hud .pbar { height: 14px; border-radius: 99px; background: var(--rule); overflow: hidden; }
+.hud .pbar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--t2), var(--good)); transition: width .3s ease; }
+.hud .pl { font-size: .8rem; font-weight: 800; color: var(--muted); }
+.hud .stat { font-family: var(--font-display); font-size: 1.25rem; white-space: nowrap; }
+.hud .stat.off { opacity: .4; }
+.feedback .pts { font-weight: 800; }
+
+/* Board */
+.board { padding: 10px; }
+#board { border-radius: 24px; }
+.track { stroke: var(--line); stroke-width: 18; }
+.rail { fill: none; stroke: var(--surface); stroke-width: 3; stroke-dasharray: 9 11; stroke-linecap: round; stroke-linejoin: round; }
+.cloud ellipse { fill: var(--cloud); }
+.hill1 { fill: var(--hill1); }
+.hill2 { fill: var(--hill2); }
+.decor { font-size: 28px; text-anchor: middle; dominant-baseline: central; }
+.stn { fill: var(--station); stroke: var(--line); stroke-width: 5; }
+.stn.begin { fill: var(--good); stroke: var(--line); }
+.stn.end { fill: var(--gold); stroke: var(--line); }
+.stn.bonus { fill: var(--gold); stroke: var(--warn); }
+.stn.trap { fill: var(--warn); stroke: var(--line); }
+.snum { fill: var(--ink); font-family: var(--font-display); font-size: 17px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
+.semo { font-size: 24px; text-anchor: middle; dominant-baseline: central; }
+.semo.big { font-size: 30px; }
+.slabel { fill: var(--ink); font-family: var(--font-display); font-size: 15px; font-weight: 600; letter-spacing: .08em; text-anchor: middle; }
+.token { transition: transform .26s ease; }
+.token .avc { fill: var(--surface); stroke: var(--accent); stroke-width: 5; }
+.token .avp { fill: var(--accent); }
+.token .avt { fill: var(--ink); font-size: 28px; text-anchor: middle; dominant-baseline: central; }
+.legend { gap: 8px 18px; font-weight: 700; color: var(--ink); }
+
+/* Question card */
+.pill { border-radius: 99px; font-weight: 800; font-size: .8rem; padding: 6px 14px; background: var(--t2); color: var(--t2on); border-color: transparent; }
+.qtext { font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.2rem); line-height: 1.2; }
+.pic { font-size: clamp(4.5rem, 14vw, 7rem); line-height: 1.1; text-align: center; padding: 10px; border-radius: 20px; background: var(--bg); border: 3px dashed var(--rule); }
+.blank { border-bottom-width: 5px; }
+.opt { min-height: 76px; border-radius: 18px; border-width: 3px; background: var(--surface); font-size: 1.3rem; font-weight: 800; }
+.opt .k { width: 36px; height: 36px; border-radius: 11px; font-family: var(--font-display); font-size: 1.1rem; }
+.opts .opt:nth-child(1) .k { background: var(--t1); color: var(--t1on); }
+.opts .opt:nth-child(2) .k { background: var(--t2); color: var(--t2on); }
+.opts .opt:nth-child(3) .k { background: var(--t3); color: var(--t3on); }
+.opts .opt:nth-child(4) .k { background: var(--t4); color: var(--t4on); }
+.opts .opt.correct .k { background: var(--good); color: #fff; }
+.opts .opt.wrong .k { background: var(--bad); color: #fff; }
+.opt:hover:not(:disabled) { border-color: var(--ink); transform: translateY(-2px); }
+.feedback { border-radius: 16px; }
+.feedback strong { font-size: 1.6rem; }
+.ansin { border-width: 3px; border-radius: 14px; font-weight: 700; }
+.wtile { border-radius: 12px; border-width: 3px; font-weight: 800; font-size: 1.25rem; min-height: 50px; }
+.oline { border-width: 3px; border-radius: 16px; }
+
+/* End */
+.trophy { font-size: 4.5rem; line-height: 1; }
+#fx { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
+.conf { position: absolute; width: 10px; height: 14px; border-radius: 3px; }
+.conf.st { background: none; width: auto; height: auto; font-size: 18px; }
+
+/* single-use special stations */
+.spec.used { opacity: .35; }
+@media (prefers-reduced-motion: reduce) {
+  .opt:hover:not(:disabled) { transform: none; }
+  .hud .pbar i { transition: none; }
+}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 44 44" aria-hidden="true">
+        <rect x="0" y="19" width="15" height="6" rx="3" fill="var(--ink)"/>
+        <rect x="29" y="19" width="15" height="6" rx="3" fill="var(--ink)"/>
+        <circle cx="22" cy="22" r="6" fill="var(--accent)"/>
+      </svg>
+      <div>
+        <h1>Mind the Gap</h1>
+        <p>English review for 1º ESO</p>
+      </div>
+    </div>
+    <button id="teacherBtn" class="btn ghost" type="button" hidden>Panel del profesor</button>
+  </header>
+
+  <!-- STUDENT: setup -->
+  <section id="setup" class="card setup">
+    <div class="hero">
+      <div class="hero-art" aria-hidden="true">🚉 › 🌳 › 🏫 › 🏆</div>
+      <h2>Ready for the journey?</h2>
+      <p class="lede">Answer each question to move your player along the line. Reach the trophy to win.</p>
+    </div>
+
+    <fieldset>
+      <legend>Who are you?</legend>
+      <div class="fields">
+        <label class="field" for="pName"><span>Your name</span><input id="pName" type="text" maxlength="40" autocomplete="off" autocapitalize="words" placeholder="Name and surname"></label>
+        <label class="field" for="pGroup"><span>Your class</span><input id="pGroup" type="text" maxlength="12" autocomplete="off" placeholder="For example 1ºA"></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Pick your player</legend>
+      <div class="avatars" id="avatars" role="group" aria-label="Pick your player"></div>
+    </fieldset>
+
+    <div class="rules" id="rulesLine"></div>
+    <p class="err" id="setupErr" role="alert"></p>
+    <div><button type="button" id="startBtn" class="btn primary big">Start the journey</button></div>
+  </section>
+
+  <!-- STUDENT: game -->
+  <section id="game" hidden>
+    <div class="layout">
+      <div>
+        <div class="chips" id="chips"></div>
+        <div class="card board">
+          <svg id="board" viewBox="0 0 900 560" role="img" aria-label="A train line of stations from start to finish"></svg>
+          <div class="legend" id="legend"></div>
+        </div>
+      </div>
+      <div class="card qCol" id="qCard">
+        <div class="timer" id="timerWrap"><div class="bar"><i id="timerFill"></i></div><span id="timerSecs"></span></div>
+        <div class="pill" id="topicPill"></div>
+        <h2 class="qtext" id="qText"></h2>
+        <div class="pic" id="pic" aria-hidden="true" hidden></div>
+        <div class="opts" id="opts"></div>
+        <div class="typebox" id="typeBox" hidden>
+          <div class="ansrow">
+            <input id="ansInput" class="ansin" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Your answer" placeholder="Write your answer">
+            <button type="button" id="typeCheck" class="btn primary">Check</button>
+          </div>
+        </div>
+        <div class="orderbox" id="orderBox" hidden>
+          <div class="oline" id="orderLine" aria-label="Your sentence"></div>
+          <div class="obank" id="orderBank" aria-label="Words to use"></div>
+          <div class="actions">
+            <button type="button" id="orderCheck" class="btn primary">Check</button>
+            <button type="button" id="orderClear" class="btn">Clear</button>
+            <span id="orderMsg" class="msg" role="status"></span>
+          </div>
+        </div>
+        <div class="feedback" id="feedback" aria-live="polite" hidden></div>
+        <div class="actions">
+          <button type="button" id="nextBtn" class="btn primary" hidden>Next question</button>
+          <button type="button" id="finishBtn" class="btn ghost" hidden>Finish and get my code</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STUDENT: end -->
+  <section id="end" class="card end-card" hidden>
+    <div>
+      <div class="trophy" id="trophy" aria-hidden="true"></div>
+      <h2 id="endTitle"></h2>
+      <p class="lede" id="endSub"></p>
+      <p class="msg" id="sendMsg" role="status" hidden></p>
+    </div>
+    <div class="codeblock">
+      <h3>Your results code</h3>
+      <p class="lede" id="codeLede">Copy this code and send it to your teacher, so your results count. Do not change it.</p>
+      <textarea id="codeBox" class="codebox" rows="4" readonly aria-label="Your results code"></textarea>
+      <div class="actions">
+        <button type="button" id="copyBtn" class="btn primary">Copy code</button>
+        <span id="copyMsg" class="msg" role="status"></span>
+      </div>
+    </div>
+    <div>
+      <h3>Topics to review</h3>
+      <p class="lede">Lowest scores first.</p>
+      <div class="review" id="review" style="margin-top:12px"></div>
+    </div>
+    <div class="actions">
+      <button type="button" id="againBtn" class="btn primary">Play again</button>
+      <button type="button" id="resetBtn" class="btn">Change setup</button>
+    </div>
+  </section>
+
+  <!-- TEACHER -->
+  <section id="teacher" class="tpanel" hidden>
+    <div class="card tsec">
+      <div>
+        <h2>Panel del profesor</h2>
+        <p class="lede">Cuando un alumno termina, recibe un código. Pégalos aquí, uno por línea o todos juntos, y se suman a los resultados de la clase.</p>
+      </div>
+      <label class="field" for="importBox"><span>Códigos de los alumnos</span>
+        <textarea id="importBox" class="codebox" rows="4" placeholder="MG1-…"></textarea>
+      </label>
+      <div class="actions">
+        <button type="button" id="importBtn" class="btn primary">Importar códigos</button>
+        <button type="button" id="syncBtn" class="btn" hidden>Actualizar desde Google Sheets</button>
+        <span id="importMsg" class="msg" role="status"></span>
+      </div>
+      <p id="tNotice" class="err" role="status"></p>
+    </div>
+
+    <div class="card tsec" id="tResults">
+      <div class="tbar">
+        <div>
+          <h3>Resultados</h3>
+          <p class="lede" id="tSummary"></p>
+        </div>
+        <div class="tctl">
+          <label class="field inline" for="tGroup"><span>Clase</span><select id="tGroup"></select></label>
+          <button type="button" id="exportBtn" class="btn">Descargar CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="tTable">
+          <thead><tr><th>Alumno</th><th>Clase</th><th>Sesiones</th><th>Respuestas</th><th>Acierto</th><th>Nota /10</th><th>Puntos</th><th>Insignias</th><th>Tema más débil</th><th>Última sesión</th></tr></thead>
+          <tbody id="tRows"></tbody>
+        </table>
+      </div>
+      <p class="lede" id="tEmpty" hidden>Todavía no hay resultados. Cuando importes los primeros códigos aparecerán aquí.</p>
+    </div>
+
+    <div class="card tsec">
+      <h3>Temas de la clase</h3>
+      <p class="lede">Porcentaje de acierto por tema, de menor a mayor.</p>
+      <div class="review" id="tTopics"></div>
+    </div>
+
+    <div class="card tsec">
+      <h3>Preguntas más falladas</h3>
+      <div class="review" id="tMissed"></div>
+    </div>
+
+    <div class="card tsec">
+      <h3>Datos</h3>
+      <p class="lede">Borra todos los resultados importados, por ejemplo al empezar una unidad nueva. No se puede deshacer.</p>
+      <div class="actions"><button type="button" id="clearBtn" class="btn">Borrar todos los resultados</button><span id="clearMsg" class="msg" role="status"></span></div>
+    </div>
+  </section>
+  <div id="fx" aria-hidden="true"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     1. RULES  (change these numbers to change the game)
+     Stations are numbered 1 to boardSize.
+     ============================================================ */
+  var CONFIG = {
+    boardSize: 30,
+    forwardCorrect: 1,       // stations forward for a right answer
+    backWrong: 1,            // stations back for a wrong answer
+    streakGoal: 3,           // right answers in a row to earn a bonus
+    streakBonus: 1,          // extra stations when the streak is reached (1 = a streak gives +2 in total; 0 = off)
+    pointsPerAnswer: 10,     // points: n right answers in a row give 10 x n; n wrong in a row take 10 x n
+    minPoints: 0,            // points never go below this (use null to allow negative points)
+    bonusStations: [4, 11, 17, 24],     // landing here: the student earns a badge (once)
+    trapStations: [7, 14, 21, 27],      // landing here: move back (use [] for none)
+    activeTopics: [],                // [] = all topics, or a list such as ['be', 'hg', 'ps']
+    topicWeights: { ps: 3, obj: 3 }, // higher number = the topic appears more often (default 1)
+    questionTypes: ['p', 'c', 't', 'o'],  // p picture, c choose, t write, o order the words
+    formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSe1xfpM1N3nRjLmAvVrUMiXxoAmShXht5hPJFRbU9o8zK0LOQ/viewform?usp=pp_url&entry.334452785=NAME&entry.1677914657=CLASS&entry.344124679=ANSWERS&entry.902426838=CORRECT&entry.1753889502=WRONG&entry.104753518=PERCENT&entry.115320584=POINTS&entry.397177721=BADGES&entry.1323009035=WEAKEST&entry.1568978483=GRADE&entry.292701859=CODE',                     // Google Form pre-filled link: results are sent here automatically
+    sheetCsvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRzkS7j7HZPkF191Awr3AJHzTebwNzrIOyEOeEu6dH8ggiT9JiFg6TCmXM29GWMpxsKFsKaUSHjGJ-E/pub?gid=1793581584&single=true&output=csv',                 // link of the form's Google Sheet published as CSV: the teacher panel reads it
+    specialMove: 2,
+    useTimer: true,                  // every question has a countdown (false = no timer)
+    timerSeconds: 20
+  };
+
+  /* ============================================================
+     2. TOPICS  (id, name shown on screen, tip shown after a mistake)
+     ============================================================ */
+  var TOPICS = [
+    { id: 'be',   name: 'Verb to be',               tip: 'I am · you / we / they are · he / she / it is.' },
+    { id: 'hg',   name: 'Have got',                 tip: 'I / you / we / they have got · he / she / it has got.' },
+    { id: 'poss', name: 'Possessive adjectives',    tip: 'my · your · his · her · its · our · your · their (before a noun).' },
+    { id: 'gen',  name: 'Saxon genitive',           tip: 'One owner: name + \'s (Tom\'s book). Plural owner ending in -s: s\' (my parents\' house).' },
+    { id: 'ps',   name: 'Present simple',           tip: 'he / she / it + verb with -s. Questions and negatives use do / does + the base verb.' },
+    { id: 'obj',  name: 'Object pronouns',          tip: 'me · you · him · her · it · us · you · them (after a verb or a preposition).' },
+    { id: 'qw',   name: 'Question words',           tip: 'What (cosa) · Where (lugar) · Who (persona) · When (tiempo) · Why (razón) · How (manera).' },
+    { id: 'nat',  name: 'Countries & nationalities', tip: 'Both start with a capital letter: Spain, Spanish · Italy, Italian.' },
+    { id: 'cls',  name: 'Classroom objects',        tip: 'Look around you: pen, rubber, ruler, bin, board, scissors, dictionary.' },
+    { id: 'subj', name: 'School subjects',          tip: 'Maths, Science, History, Geography, Art, Music, PE, English, Technology.' },
+    { id: 'rout', name: 'Daily routines',           tip: 'get up · have breakfast · go to school · do homework · go to bed.' },
+    { id: 'fam',  name: 'Family members',           tip: 'Parents\' parents are grandparents. Uncle / aunt have children called cousins.' }
+  ];
+
+  /* ============================================================
+     3. QUESTIONS
+     Each question: [ "text with ___ for the gap", "RIGHT answer", wrong, wrong, wrong ]
+     The first option is always the right one. The game shuffles them.
+     ============================================================ */
+  var RAW = {
+    be: [
+      ["I ___ twelve years old.", "am", "is", "are", "be"],
+      ["My best friend ___ from Italy.", "is", "are", "am", "be"],
+      ["We ___ in class 1º ESO.", "are", "is", "am", "be"],
+      ["My parents ___ teachers.", "are", "is", "am", "be"],
+      ["___ you a new student?", "Are", "Is", "Am", "Do"],
+      ["He ___ happy today. (negative)", "isn't", "aren't", "doesn't", "don't"],
+      ["Is Lucy your sister? Yes, ___.", "she is", "she are", "she does", "she has"],
+      ["The books ___ on the desk.", "are", "is", "am", "be"],
+      ["My cat ___ very big.", "is", "are", "am", "be"],
+      ["___ they from Spain? No, they aren't.", "Are", "Is", "Do", "Am"],
+      ["I ___ Spanish. I'm French. (negative)", "am not", "isn't", "aren't", "don't"],
+      ["Choose the correct sentence.", "They are my friends.", "They is my friends.", "They am my friends.", "They be my friends."]
+    ],
+    hg: [
+      ["I ___ a new bike.", "have got", "has got", "am got", "is got"],
+      ["She ___ two brothers.", "has got", "have got", "is got", "does got"],
+      ["They ___ got a big dog.", "have", "has", "are", "do"],
+      ["___ you got a pen?", "Have", "Has", "Do", "Are"],
+      ["He ___ got a computer. (negative)", "hasn't", "haven't", "doesn't", "isn't"],
+      ["Has your mum got a car? Yes, she ___.", "has", "have", "does", "is"],
+      ["My school ___ got a big library.", "has", "have", "is", "does"],
+      ["We ___ got homework today. (negative)", "haven't", "hasn't", "don't", "aren't"],
+      ["Choose the correct question.", "Has he got a ruler?", "Have he got a ruler?", "Does he got a ruler?", "Is he got a ruler?"],
+      ["Peter ___ got brown eyes and short hair.", "has", "have", "is", "does"],
+      ["I ___ got a sister. I've got two brothers. (negative)", "haven't", "hasn't", "don't", "am not"],
+      ["Fish ___ got legs. (negative)", "haven't", "hasn't", "aren't", "doesn't"]
+    ],
+    poss: [
+      ["I have a cat. ___ name is Tom.", "My", "Me", "I", "Mine"],
+      ["She loves ___ mother.", "her", "his", "she", "hers"],
+      ["Tom has a bike. ___ bike is red.", "His", "Her", "Its", "He"],
+      ["We love ___ school.", "our", "we", "us", "ours"],
+      ["They are in ___ classroom.", "their", "they", "them", "there"],
+      ["The dog is eating ___ food.", "its", "it's", "his", "their"],
+      ["You are my friend and I like ___ ideas.", "your", "you", "yours", "you're"],
+      ["Maria and I are sisters. ___ room is big.", "Our", "Their", "Her", "My"],
+      ["Anna has a pencil. It's ___ pencil.", "her", "his", "their", "she"],
+      ["Mr Brown and ___ wife are teachers.", "his", "her", "their", "him"],
+      ["Where are ___ books, Carlos?", "your", "you", "yours", "their"],
+      ["I'm Luis. ___ surname is García.", "My", "Me", "Mine", "I"]
+    ],
+    gen: [
+      ["This is ___ book. (Tom)", "Tom's", "Toms", "Tom", "of Tom"],
+      ["It's my ___ house. (parents)", "parents'", "parent's", "parents", "of parents"],
+      ["The ___ bag is red. (girl)", "girl's", "girls", "girl", "girls's"],
+      ["Is this the ___ room? (children)", "children's", "childrens'", "childrens", "children'"],
+      ["Which one is correct?", "Ana's brother", "Ana brother", "Ana's of brother", "The brother Ana"],
+      ["That's ___ pencil case. (Maria)", "Maria's", "Marias", "Maria", "Maria'"],
+      ["These are my two ___ phones. (sisters)", "sisters'", "sister's", "sisters", "sisters's"],
+      ["Whose bag is it? It's ___.", "Laura's", "Laura", "of Laura", "Lauras"],
+      ["My ___ car is blue. (dad)", "dad's", "dads", "dad", "dads'"],
+      ["This is the ___ classroom. (teacher)", "teacher's", "teachers", "teacher", "of teacher"],
+      ["It's my best ___ bike. (friend)", "friend's", "friends", "friend", "friends'"],
+      ["The ___ toys are in the box. (babies)", "babies'", "baby's", "babys'", "babies"]
+    ],
+    ps: [
+      ["He ___ football at the park.", "plays", "play", "playing", "is play"],
+      ["My sister ___ English at school.", "studies", "studys", "study", "studyes"],
+      ["They ___ in a big house.", "live", "lives", "living", "are live"],
+      ["Does she ___ pizza?", "like", "likes", "liking", "to like"],
+      ["I ___ like carrots. (negative)", "don't", "doesn't", "not", "am not"],
+      ["She ___ like tea. (negative)", "doesn't", "don't", "isn't", "not"],
+      ["___ your friends play tennis?", "Do", "Does", "Are", "Is"],
+      ["Does he play the guitar? Yes, he ___.", "does", "do", "plays", "is"],
+      ["My dad ___ a taxi.", "drives", "drive", "driving", "is drive"],
+      ["Mum ___ the dishes after dinner.", "washes", "washs", "wash", "washing"],
+      ["We ___ to music in the car.", "listen", "listens", "listening", "are listen"],
+      ["The film ___ at eight o'clock.", "starts", "start", "starting", "is start"],
+      ["Choose the correct question.", "Where does she live?", "Where she lives?", "Where does she lives?", "Where do she live?"],
+      ["My cat ___ milk.", "drinks", "drink", "drinking", "is drinks"],
+      ["She ___ TV in the evening.", "watches", "watchs", "watch", "watching"]
+    ],
+    obj: [
+      ["I like Tom. I talk to ___.", "him", "he", "his", "her"],
+      ["Look at Anna! Can you see ___?", "her", "she", "hers", "his"],
+      ["My parents are here. I love ___.", "them", "they", "their", "theirs"],
+      ["Teacher, can you help ___?", "me", "I", "my", "mine"],
+      ["We are your friends. Call ___!", "us", "we", "our", "ours"],
+      ["Here's a present. It's for ___, Marta!", "you", "your", "yours", "he"],
+      ["The dog is hungry. Give ___ some food.", "it", "its", "it's", "he"],
+      ["Where's my phone? I can't find ___.", "it", "its", "they", "them"],
+      ["Ana and I are late. Wait for ___!", "us", "we", "our", "them"],
+      ["Peter is nice. I sit next to ___.", "him", "he", "his", "them"],
+      ["These are my shoes. Do you like ___?", "them", "they", "their", "it"],
+      ["Lucy is my cousin. I play with ___.", "her", "she", "hers", "his"]
+    ],
+    qw: [
+      ["___ is your name?", "What", "Where", "Who", "When"],
+      ["___ do you live? In Murcia.", "Where", "When", "Who", "Why"],
+      ["___ is your birthday? In May.", "When", "Where", "Who", "How"],
+      ["___ is your teacher? Mr Lopez.", "Who", "What", "Where", "How"],
+      ["___ old are you? I'm twelve.", "How", "What", "Who", "Where"],
+      ["___ are you happy? Because it's Friday!", "Why", "What", "Who", "Where"],
+      ["___ time is it? It's half past two.", "What", "When", "Who", "Where"],
+      ["___ is this? It's a rubber.", "What", "Who", "Where", "When"],
+      ["___ many students are there in your class?", "How", "What", "Who", "Where"],
+      ["___ is that boy? He's my brother.", "Who", "What", "Where", "When"],
+      ["___ is your favourite subject? Science.", "What", "Who", "Where", "How"],
+      ["___ does the lesson start? At nine o'clock.", "What time", "Who", "Where", "Why"]
+    ],
+    nat: [
+      ["Paris is in ___.", "France", "French", "Frence", "Francia"],
+      ["A person from Spain is ___.", "Spanish", "Spain", "Spainish", "Spanis"],
+      ["Pizza is from Italy. It is ___ food.", "Italian", "Italy", "Italish", "Italic"],
+      ["Mr Smith is from England. He is ___.", "English", "England", "Englander", "Englisch"],
+      ["Berlin is in Germany. People speak ___.", "German", "Germany", "Germanish", "Germans"],
+      ["A person from Portugal is ___.", "Portuguese", "Portugal", "Portugish", "Portuguesa"],
+      ["Sushi is a ___ dish. (Japan)", "Japanese", "Japan", "Japanish", "Japaneses"],
+      ["Tom is from the USA. He's ___.", "American", "America", "Americano", "USA"],
+      ["London is the capital of ___.", "England", "English", "Englishman", "Englandish"],
+      ["A person from China is ___.", "Chinese", "China", "Chinease", "Chinaish"],
+      ["Tacos are from ___.", "Mexico", "Mexican", "Mexic", "Mexicano"],
+      ["Dublin is in Ireland. People there are ___.", "Irish", "Ireland", "Irelandish", "Irishes"]
+    ],
+    cls: [
+      ["You write with it. It's a ___.", "pen", "rubber", "ruler", "chair"],
+      ["You use a ___ to rub out mistakes.", "rubber", "ruler", "bin", "desk"],
+      ["You measure lines with a ___.", "ruler", "rubber", "bag", "board"],
+      ["You carry your books in a ___.", "school bag", "window", "board", "clock"],
+      ["The teacher writes on the ___.", "whiteboard", "window", "chair", "rubber"],
+      ["You sit on a ___.", "chair", "board", "pen", "door"],
+      ["You keep your pens in a ___.", "pencil case", "window", "bin", "clock"],
+      ["You look at the ___ to know the time.", "clock", "rubber", "bin", "book"],
+      ["You open the ___ to enter the classroom.", "door", "rubber", "bin", "pen"],
+      ["Rubbish goes in the ___.", "bin", "book", "ruler", "clock"],
+      ["To find the meaning of a word you use a ___.", "dictionary", "ruler", "glue", "scissors"],
+      ["You cut paper with ___.", "scissors", "a rubber", "a ruler", "glue"],
+      ["You use a ___ to sharpen your pencil.", "sharpener", "ruler", "rubber", "glue"],
+      ["It's on the wall and shows countries. It's a ___.", "map", "rubber", "pen", "bag"]
+    ],
+    subj: [
+      ["In ___ we learn about numbers.", "Maths", "PE", "Art", "Music"],
+      ["In PE we ___.", "play sports", "paint pictures", "learn languages", "study maps"],
+      ["In Geography we study ___.", "maps and countries", "numbers", "songs", "verbs"],
+      ["In ___ we paint and draw.", "Art", "Maths", "History", "Science"],
+      ["In ___ we learn about the past.", "History", "Music", "PE", "Maths"],
+      ["In ___ we sing songs and play instruments.", "Music", "Geography", "Science", "English"],
+      ["In Science we study ___.", "plants, animals and the body", "kings and queens", "tennis", "songs"],
+      ["In ___ we study grammar and verbs.", "English", "PE", "Music", "Art"],
+      ["In Technology we ___.", "make projects", "sing songs", "study the past", "play football"],
+      ["Choose the correct spelling.", "Geography", "Geografy", "Jeography", "Geografi"],
+      ["Choose the correct spelling.", "History", "Histori", "Hystory", "Histry"],
+      ["My favourite subject is ___. We play football and basketball.", "PE", "Art", "Science", "Music"],
+      ["Which one is NOT a school subject?", "Pizza", "Music", "Art", "History"]
+    ],
+    rout: [
+      ["I ___ up at seven o'clock.", "get", "do", "make", "have"],
+      ["She ___ breakfast at eight.", "has", "does", "gets", "goes"],
+      ["We ___ to school by bus.", "go", "do", "make", "play"],
+      ["He ___ his teeth after lunch.", "brushes", "makes", "does", "plays"],
+      ["They ___ their homework in the afternoon.", "do", "make", "have", "go"],
+      ["My dad ___ dinner for the family.", "makes", "does", "goes", "gets"],
+      ["I ___ to bed at ten o'clock.", "go", "do", "make", "have"],
+      ["Do you ___ a shower in the morning?", "have", "make", "go", "do"],
+      ["Peter ___ home at three o'clock.", "gets", "does", "makes", "plays"],
+      ["I ___ lunch at school.", "have", "do", "go", "get"],
+      ["She ___ her friends after school.", "meets", "does", "makes", "goes"],
+      ["She ___ the bus at 8:15.", "catches", "does", "makes", "plays"],
+      ["7:30 is ___ seven.", "half past", "quarter to", "quarter past", "o'clock"],
+      ["7:45 is ___ eight.", "quarter to", "quarter past", "half past", "o'clock"]
+    ],
+    fam: [
+      ["Your mother's mother is your ___.", "grandmother", "aunt", "sister", "cousin"],
+      ["Your father's brother is your ___.", "uncle", "cousin", "grandfather", "nephew"],
+      ["Your uncle's daughter is your ___.", "cousin", "sister", "niece", "aunt"],
+      ["Your mum and dad's daughter is your ___.", "sister", "cousin", "aunt", "niece"],
+      ["Your mother's sister is your ___.", "aunt", "niece", "grandmother", "cousin"],
+      ["Your mother and father are your ___.", "parents", "grandparents", "cousins", "children"],
+      ["Your brother's son is your ___.", "nephew", "niece", "cousin", "uncle"],
+      ["My grandmother's husband is my ___.", "grandfather", "uncle", "father", "brother"],
+      ["Your sister's daughter is your ___.", "niece", "nephew", "cousin", "aunt"],
+      ["Anna is Tom's wife. Tom is Anna's ___.", "husband", "brother", "son", "father"],
+      ["My mum's parents are my ___.", "grandparents", "parents", "cousins", "aunts"],
+      ["Choose the correct spelling.", "daughter", "dauter", "doughter", "daugther"]
+    ]
+  };
+
+  /* ============================================================
+     3b. WRITING QUESTIONS
+     TYPE:  the student writes the missing word(s).
+            ["Sentence with ___", "answer|another accepted answer"]
+     ORDER: the student puts the words in order.
+            "Correct sentence."   or   ["Correct sentence.", "Another correct order."]
+     ============================================================ */
+  var TYPE = {
+    be: [
+      ["My brother ___ (be) fifteen years old.", "is"],
+      ["___ they (be) in the classroom? Yes, they are.", "Are"],
+      ["I ___ (be) not hungry.", "am"],
+      ["It ___ a dog. It's a cat. (negative, short form)", "isn't|is not"]
+    ],
+    hg: [
+      ["My sister ___ (have got) a new phone.", "has got|'s got"],
+      ["We ___ homework today. (have got, negative)", "haven't got|have not got"],
+      ["___ he got a bike? (question)", "Has"],
+      ["The dog ___ (have got) four legs.", "has got|'s got"]
+    ],
+    poss: [
+      ["Maria loves ___ (she) cat.", "her"],
+      ["We play with ___ (we) friends.", "our"],
+      ["The dog is eating ___ (it) food.", "its"],
+      ["I'm Luis and ___ (I) surname is Perez.", "my"]
+    ],
+    gen: [
+      ["This is the book of Tom. → This is ___ book.", "Tom's"],
+      ["This is the car of my parents. → This is my ___ car.", "parents'"],
+      ["This is the bag of the girl. → This is the ___ bag.", "girl's"],
+      ["These are the toys of the children. → These are the ___ toys.", "children's"]
+    ],
+    ps: [
+      ["My mum ___ (work) in a hospital.", "works"],
+      ["They ___ pizza. (not like)", "don't like|do not like"],
+      ["___ she play the guitar?", "Does"],
+      ["Peter ___ (watch) TV in the evening.", "watches"]
+    ],
+    obj: [
+      ["I like Tom. I talk to ___.", "him"],
+      ["My parents are here. I love ___.", "them"],
+      ["Anna is nice. I play with ___.", "her"],
+      ["Can you help ___? (I)", "me"]
+    ],
+    qw: [
+      ["___ is your birthday? In May.", "When"],
+      ["___ do you live? In Madrid.", "Where"],
+      ["___ is your teacher? Mrs Lopez.", "Who"],
+      ["___ are you sad? Because I have an exam.", "Why"]
+    ],
+    nat: [
+      ["Rome is in Italy. A person from Italy is ___.", "Italian"],
+      ["Madrid is in ___. (country)", "Spain"],
+      ["A person from France is ___.", "French"],
+      ["He is from the USA. He is ___.", "American"]
+    ],
+    cls: [
+      ["You use a ___ to measure a line. (r...)", "ruler"],
+      ["You rub out mistakes with a ___. (r...)", "rubber|eraser"],
+      ["You throw rubbish in the ___. (b...)", "bin"],
+      ["You look at the ___ to see the time. (c...)", "clock"]
+    ],
+    subj: [
+      ["In ___ we paint and draw. (A...)", "Art"],
+      ["In ___ we study numbers. (M...)", "Maths|Math"],
+      ["In ___ we play football and basketball. (two letters)", "PE|P.E."],
+      ["In ___ we learn about the past. (H...)", "History"]
+    ],
+    rout: [
+      ["She ___ (have) breakfast at eight o'clock.", "has"],
+      ["He ___ (do) his homework at five.", "does"],
+      ["I ___ (get) up at seven.", "get"],
+      ["They ___ (go) to school by bus.", "go"]
+    ],
+    fam: [
+      ["Your mother's father is your ___. (g...)", "grandfather"],
+      ["Your uncle's son is your ___. (c...)", "cousin"],
+      ["Your father's sister is your ___. (a...)", "aunt"],
+      ["Your mum and dad are your ___. (p...)", "parents"]
+    ]
+  };
+
+  var ORDER = {
+    be: [
+      "I am twelve years old.",
+      "Is she from Italy?",
+      ["They are not in the classroom.", "They aren't in the classroom."],
+      "My best friend is very tall."
+    ],
+    hg: [
+      "She has got two brothers.",
+      ["I haven't got a ruler.", "I have not got a ruler."],
+      "Have you got a pen?",
+      "My school has got a big library."
+    ],
+    poss: [
+      "Their house is very big.",
+      "Where is your school bag?",
+      "His sister is my best friend.",
+      "Our teacher is from London."
+    ],
+    gen: [
+      "This is Anna's pencil case.",
+      "Is that your brother's bike?",
+      "My parents' car is red.",
+      "It's Peter's bag."
+    ],
+    ps: [
+      "She plays tennis on Saturdays.",
+      "Where does he live?",
+      ["I don't like carrots.", "I do not like carrots."],
+      "Do your friends play football?"
+    ],
+    obj: [
+      "Please help me with my homework.",
+      "I like them very much.",
+      "Can you see him?",
+      "She gives us a book."
+    ],
+    qw: [
+      "What is your name?",
+      "Where do you live?",
+      "How old is your brother?",
+      "Who is your favourite teacher?"
+    ],
+    nat: [
+      "She is from Italy and she is Italian.",
+      "My friend is from Germany.",
+      "Are you Portuguese or Spanish?",
+      "They are English and they live in London."
+    ],
+    cls: [
+      "My pencil case is on the desk.",
+      "I have got a blue ruler.",
+      "The teacher writes on the board.",
+      "Open your books, please."
+    ],
+    subj: [
+      "My favourite subject is Science.",
+      "We have Maths on Monday.",
+      "Our English teacher is very nice.",
+      "I like Music and Art."
+    ],
+    rout: [
+      "I get up at seven o'clock.",
+      "She has breakfast with her family.",
+      "We go to school by bus.",
+      "He does his homework at five."
+    ],
+    fam: [
+      "My grandmother lives with us.",
+      "Her cousin is my best friend.",
+      "This is my uncle's house.",
+      "They are my parents."
+    ]
+  };
+
+  /* ============================================================
+     3c. PICTURE QUESTIONS
+     PICT: the student looks at a picture and chooses the word.
+           [picture, "Question", "RIGHT answer", wrong, wrong, wrong]
+     ============================================================ */
+  var PICT = {
+    cls: [
+      ["✏️", "What is it?", "pencil", "pen", "ruler", "rubber"],
+      ["📏", "What is it?", "ruler", "rubber", "bin", "pencil"],
+      ["🎒", "What is it?", "school bag", "pencil case", "desk", "chair"],
+      ["✂️", "What are they?", "scissors", "glue", "rulers", "rubbers"],
+      ["🗑️", "What is it?", "bin", "board", "window", "door"],
+      ["🕐", "What is it?", "clock", "map", "board", "window"],
+      ["🪑", "What is it?", "chair", "desk", "door", "bag"],
+      ["📖", "What is it?", "book", "bin", "clock", "pen"],
+      ["💻", "What is it?", "computer", "board", "book", "clock"],
+      ["🖊️", "What is it?", "pen", "pencil", "rubber", "glue"],
+      ["🚪", "What is it?", "door", "window", "board", "chair"],
+      ["🗺️", "What is it?", "map", "book", "board", "clock"]
+    ],
+    subj: [
+      ["⚽", "Which subject?", "PE", "Art", "Music", "Maths"],
+      ["🎨", "Which subject?", "Art", "Music", "History", "PE"],
+      ["🎵", "Which subject?", "Music", "Art", "Science", "English"],
+      ["🔬", "Which subject?", "Science", "Maths", "History", "Art"],
+      ["🌍", "Which subject?", "Geography", "History", "Science", "Music"],
+      ["➗", "Which subject?", "Maths", "Art", "PE", "English"],
+      ["🏛️", "Which subject?", "History", "Geography", "Art", "Science"],
+      ["🔤", "Which subject?", "English", "Maths", "Music", "Art"]
+    ],
+    rout: [
+      ["⏰", "Which routine?", "get up", "go to bed", "have lunch", "do homework"],
+      ["🍳", "Which routine?", "have breakfast", "have lunch", "go to bed", "get up"],
+      ["🪥", "Which routine?", "brush your teeth", "have a shower", "get up", "go to school"],
+      ["🚿", "Which routine?", "have a shower", "brush your teeth", "do homework", "have dinner"],
+      ["🚌", "Which routine?", "go to school", "go home", "get up", "have lunch"],
+      ["📚", "Which routine?", "do homework", "go to school", "have breakfast", "go to bed"],
+      ["🍽️", "Which routine?", "have lunch", "have breakfast", "get up", "do homework"],
+      ["🛏️", "Which routine?", "go to bed", "get up", "have dinner", "go to school"]
+    ],
+    fam: [
+      ["👵", "Who is she?", "grandmother", "mother", "aunt", "sister"],
+      ["👴", "Who is he?", "grandfather", "father", "uncle", "brother"],
+      ["👶", "Who is it?", "baby", "cousin", "sister", "niece"],
+      ["👨‍👩‍👧‍👦", "What is it?", "family", "parents", "cousins", "grandparents"]
+    ]
+  };
+
+  /* ============================================================
+     3d. MORE QUESTIONS
+     Same formats as above. These are added to the first banks, so
+     you can write your own new questions here without touching the rest.
+     ============================================================ */
+  var RAW_MORE = {
+    be: [
+      ["Mary and I ___ best friends.", "are", "is", "am", "be"],
+      ["___ your teacher from Madrid?", "Is", "Are", "Am", "Do"],
+      ["The students ___ in the library now.", "are", "is", "am", "be"],
+      ["I ___ not late for class.", "am", "is", "are", "be"],
+      ["Where ___ my keys?", "are", "is", "am", "be"]
+    ],
+    hg: [
+      ["Tom ___ got a skateboard.", "has", "have", "is", "does"],
+      ["___ she got a brother?", "Has", "Have", "Is", "Does"],
+      ["They ___ got a big garden.", "have", "has", "are", "do"],
+      ["I ___ got any pets. (negative)", "haven't", "hasn't", "don't", "am not"],
+      ["Has your school got a swimming pool? No, it ___.", "hasn't", "haven't", "doesn't", "isn't"]
+    ],
+    poss: [
+      ["Peter and Ana love ___ new teacher.", "their", "they", "them", "theirs"],
+      ["Is this ___ pen, Clara?", "your", "you", "yours", "you're"],
+      ["My brother has a bike. ___ bike is blue.", "His", "Her", "Its", "He"],
+      ["We are in ___ English class.", "our", "we", "us", "ours"],
+      ["The cat is washing ___ face.", "its", "it's", "his", "their"]
+    ],
+    gen: [
+      ["That's my ___ phone. (sister)", "sister's", "sisters'", "sisters", "sister"],
+      ["These are the ___ books. (students)", "students'", "student's", "students", "of students"],
+      ["Whose pencil case is it? It's ___.", "Maria's", "Maria", "of Maria", "Marias"],
+      ["The ___ name is Max. (dog)", "dog's", "dogs", "dogs'", "dog"],
+      ["My ___ house is big. (grandparents)", "grandparents'", "grandparent's", "grandparents", "grandparents's"]
+    ],
+    ps: [
+      ["My friends ___ football on Saturdays.", "play", "plays", "playing", "are play"],
+      ["She ___ to school by bus.", "goes", "go", "going", "is go"],
+      ["What time ___ you get up?", "do", "does", "are", "is"],
+      ["He ___ like cold milk. (negative)", "doesn't", "don't", "isn't", "not"],
+      ["My brother ___ his homework after dinner.", "does", "do", "doing", "is do"],
+      ["We ___ English on Tuesdays and Thursdays.", "have", "has", "having", "are have"],
+      ["Where ___ your mother work?", "does", "do", "is", "are"],
+      ["The bus ___ at half past eight.", "arrives", "arrive", "arriving", "is arrive"]
+    ],
+    obj: [
+      ["Mum cooks dinner for ___. (we)", "us", "we", "our", "ours"],
+      ["I can't see the board. Can you open the window for ___?", "me", "I", "my", "mine"],
+      ["Tom is in my class. I sit next to ___.", "him", "he", "his", "her"],
+      ["Where are my shoes? I can't find ___.", "them", "they", "their", "it"],
+      ["Do you know that girl? Yes, I talk to ___ every day.", "her", "she", "hers", "his"],
+      ["Look at the dogs! I like ___.", "them", "they", "their", "it"],
+      ["My grandma loves ___. (I)", "me", "I", "my", "mine"],
+      ["Give the book to Anna and Pedro. Give it to ___.", "them", "they", "their", "theirs"]
+    ],
+    qw: [
+      ["___ is your favourite colour? Blue.", "What", "Who", "Where", "When"],
+      ["___ is that man? He's my uncle.", "Who", "What", "Where", "How"],
+      ["___ do you go to school? By bus.", "How", "Who", "When", "Why"],
+      ["___ are my keys? On the table.", "Where", "What", "Who", "Why"],
+      ["___ do you like Fridays? Because we have PE.", "Why", "What", "Where", "Who"]
+    ],
+    nat: [
+      ["Tokyo is the capital of ___.", "Japan", "Japanese", "China", "Chinese"],
+      ["Maria is from Mexico. She is ___.", "Mexican", "Mexico", "Mexic", "Mexicana"],
+      ["My teacher is from the USA. She is ___.", "American", "America", "the USA", "Americans"],
+      ["Lisbon is the capital of ___.", "Portugal", "Portuguese", "Portugese", "Spain"],
+      ["Which sentence is correct?", "He is from Italy.", "He is from italy.", "He is from Italian.", "He from Italy."]
+    ],
+    cls: [
+      ["You write on paper with a ___.", "pen", "bin", "clock", "chair"],
+      ["You put your books and pens in your ___.", "school bag", "bin", "window", "board"],
+      ["You stick paper together with ___.", "glue", "a clock", "a chair", "a bin"],
+      ["The students sit at their ___.", "desks", "bins", "windows", "clocks"],
+      ["The teacher opens the ___ when it's hot.", "window", "rubber", "pen", "bag"]
+    ],
+    subj: [
+      ["In ___ we learn to play the guitar and sing.", "Music", "Maths", "History", "PE"],
+      ["In ___ we learn about plants and animals.", "Science", "Art", "Music", "PE"],
+      ["I have ___ on Monday. We study numbers and problems.", "Maths", "Art", "PE", "Music"],
+      ["In ___ we run and jump in the playground.", "PE", "Geography", "Maths", "English"],
+      ["In ___ we study rivers, mountains and countries.", "Geography", "History", "Music", "Art"]
+    ],
+    rout: [
+      ["She ___ her teeth before bed.", "brushes", "does", "makes", "goes"],
+      ["We ___ dinner at nine o'clock.", "have", "go", "get", "do"],
+      ["I ___ home at four o'clock.", "get", "do", "make", "play"],
+      ["He ___ a shower every morning.", "has", "does", "makes", "goes"],
+      ["My mum ___ the dishes after lunch.", "does", "makes", "has", "goes"]
+    ],
+    fam: [
+      ["My mother's brother is my ___.", "uncle", "cousin", "nephew", "father"],
+      ["My father's mother is my ___.", "grandmother", "aunt", "mother", "sister"],
+      ["My aunt's son is my ___.", "cousin", "brother", "nephew", "uncle"],
+      ["My parents have two children: me and my ___. (boy)", "brother", "uncle", "cousin", "grandfather"],
+      ["My sister's son is my ___.", "nephew", "niece", "cousin", "uncle"]
+    ]
+  };
+
+  var TYPE_MORE = {
+    be: [
+      ["My parents ___ (be) at work now.", "are"],
+      ["___ you (be) from Italy? No, I'm not.", "Are"],
+      ["She ___ (be) not my sister. She's my cousin. (short form)", "isn't|is not"]
+    ],
+    hg: [
+      ["I ___ (have got) two sisters.", "have got|'ve got"],
+      ["He ___ (have got, negative) a bike.", "hasn't got|has not got"],
+      ["___ you got a pen? (question)", "Have"]
+    ],
+    poss: [
+      ["I love my dog. ___ (it) name is Rex.", "Its"],
+      ["They go to ___ (they) school by bus.", "their"],
+      ["Is this ___ (you) bag?", "your"]
+    ],
+    gen: [
+      ["This is the room of my sister. → This is my ___ room.", "sister's"],
+      ["These are the bikes of my brothers. → These are my ___ bikes.", "brothers'"],
+      ["This is the pen of Laura. → This is ___ pen.", "Laura's"]
+    ],
+    ps: [
+      ["My brother ___ (play) the piano.", "plays"],
+      ["We ___ to school on Sundays. (not go)", "don't go|do not go"],
+      ["___ your mum work in a bank?", "Does"],
+      ["She ___ (study) English every day.", "studies"]
+    ],
+    obj: [
+      ["Look at Peter! I can see ___.", "him"],
+      ["Maria is my friend. I like ___.", "her"],
+      ["Sofia and Pablo are in the garden. Call ___!", "them"]
+    ],
+    qw: [
+      ["___ old are you?", "How"],
+      ["___ is the supermarket? Next to the school.", "Where"],
+      ["___ is your best friend? Carlos.", "Who"]
+    ],
+    nat: [
+      ["Berlin is in Germany. A person from Germany is ___.", "German"],
+      ["Dublin is in ___. (country)", "Ireland"],
+      ["She is from Mexico. She is ___.", "Mexican"]
+    ],
+    cls: [
+      ["You write on the ___ in class. (w...)", "whiteboard|board"],
+      ["You put your pens in a pencil ___. (c...)", "case"],
+      ["You sit on a ___. (c...)", "chair"]
+    ],
+    subj: [
+      ["In ___ we study plants and animals. (S...)", "Science"],
+      ["In ___ we learn English grammar. (E...)", "English"],
+      ["In ___ we sing songs. (M...)", "Music"]
+    ],
+    rout: [
+      ["She ___ (go) to bed at ten.", "goes"],
+      ["He ___ (have) lunch at two o'clock.", "has"],
+      ["We ___ (do) our homework in the afternoon.", "do"]
+    ],
+    fam: [
+      ["Your mother's mother is your ___. (g...)", "grandmother"],
+      ["Your aunt's daughter is your ___. (c...)", "cousin"],
+      ["Your brother is your parents' ___. (s...)", "son"]
+    ]
+  };
+
+  var ORDER_MORE = {
+    be: [
+      "We are in the same class.",
+      "Is your brother at home?",
+      ["He isn't from Spain.", "He is not from Spain."]
+    ],
+    hg: [
+      "My brother has got a new computer.",
+      "Has she got a pencil case?",
+      ["We haven't got a dog.", "We have not got a dog."]
+    ],
+    poss: [
+      "My mother is a teacher.",
+      "Is this your pencil?",
+      "They love their new school."
+    ],
+    gen: [
+      "That is my sister's bike.",
+      "The teacher's desk is big.",
+      "Where are the girls' bags?"
+    ],
+    ps: [
+      "He plays football after school.",
+      "My mum works in a hospital.",
+      ["She doesn't like carrots.", "She does not like carrots."],
+      "What time do you get up?"
+    ],
+    obj: [
+      "I love her very much.",
+      "Can you help him, please?",
+      "Our teacher gives us homework."
+    ],
+    qw: [
+      "Where is your school?",
+      "When is your birthday?",
+      "Why are you happy today?"
+    ],
+    nat: [
+      "I am Spanish and my friend is French.",
+      "Is he from Ireland?",
+      "My teacher is from the USA."
+    ],
+    cls: [
+      "The pen is in my school bag.",
+      "Put your books on the desk.",
+      ["I need a ruler and a rubber.", "I need a rubber and a ruler."]
+    ],
+    subj: [
+      "We have English on Wednesday.",
+      ["I like Science and Geography.", "I like Geography and Science."],
+      "Our PE teacher is very funny."
+    ],
+    rout: [
+      "I have lunch at school.",
+      "She goes to bed at ten o'clock.",
+      "We do our homework in the afternoon."
+    ],
+    fam: [
+      "My uncle lives in London.",
+      "I have got two cousins.",
+      "My grandfather is very old."
+    ]
+  };
+
+  var PICT_MORE = {
+    cls: [
+      ["📓", "What is it?", "notebook", "book", "map", "bag"],
+      ["📚", "What are they?", "books", "bags", "rulers", "pens"],
+      ["🖥️", "What is it?", "computer", "clock", "window", "chair"]
+    ],
+    subj: [
+      ["🎸", "Which subject?", "Music", "PE", "Maths", "Art"],
+      ["🗺️", "Which subject?", "Geography", "History", "English", "Maths"],
+      ["🏺", "Which subject?", "History", "Art", "Maths", "Science"]
+    ],
+    rout: [
+      ["🏠", "Which routine?", "go home", "go to school", "get up", "have lunch"],
+      ["🍝", "Which routine?", "have dinner", "have breakfast", "get up", "go to bed"],
+      ["📺", "Which routine?", "watch TV", "do homework", "go to bed", "have a shower"]
+    ]
+  };
+
+  function addMore(base, more) {
+    Object.keys(more).forEach(function (id) { base[id] = (base[id] || []).concat(more[id]); });
+  }
+  addMore(RAW, RAW_MORE);
+  addMore(TYPE, TYPE_MORE);
+  addMore(ORDER, ORDER_MORE);
+  addMore(PICT, PICT_MORE);
+
+  /* ============================================================
+     3e. MORE PRESENT SIMPLE (replaces the old flag pictures)
+     ============================================================ */
+  addMore(RAW, { ps: [
+    ["Sara ___ the guitar after school.", "plays", "play", "is play", "playing"],
+    ["___ Tom live near the school?", "Does", "Do", "Is", "Has"],
+    ["My parents don't ___ coffee.", "drink", "drinks", "drinking", "to drink"],
+    ["What ___ your sister do on Sundays?", "does", "do", "is", "has"]
+  ] });
+  addMore(TYPE, { ps: [
+    ["Anna ___ (read) a book every night.", "reads"],
+    ["My cousins ___ (live) in London.", "live"],
+    ["He ___ (not like) spicy food.", "doesn't like|does not like"],
+    ["___ you speak English at home? (question)", "Do"]
+  ] });
+  addMore(ORDER, { ps: [
+    "My friend lives near the school.",
+    "Do you play football on Sundays?",
+    ["Tom doesn't eat fish.", "Tom does not eat fish."]
+  ] });
+  addMore(PICT, { ps: [
+    ["🏊", "What does he do?", "He swims.", "He swim.", "He is swim.", "He swimes."],
+    ["📖", "What does she do?", "She reads.", "She read.", "She is read.", "She reades."],
+    ["🎹", "What does she do?", "She plays the piano.", "She play the piano.", "She plays piano the.", "She do the piano."]
+  ] });
+
+  /* ============================================================
+     4. ENGINE (you normally do not need to edit below)
+     ============================================================ */
+  var QUESTIONS = [];
+  Object.keys(RAW).forEach(function (id) {
+    RAW[id].forEach(function (r, i) { QUESTIONS.push({ kind: 'c', t: id, k: id + ':' + i, q: r[0], a: r.slice(1) }); });
+  });
+  Object.keys(TYPE).forEach(function (id) {
+    TYPE[id].forEach(function (r, i) { QUESTIONS.push({ kind: 't', t: id, k: id + ':t' + i, q: r[0], ans: r[1].split('|') }); });
+  });
+  Object.keys(ORDER).forEach(function (id) {
+    ORDER[id].forEach(function (r, i) { QUESTIONS.push({ kind: 'o', t: id, k: id + ':o' + i, s: Array.isArray(r) ? r : [r] }); });
+  });
+  Object.keys(PICT).forEach(function (id) {
+    PICT[id].forEach(function (r, i) { QUESTIONS.push({ kind: 'p', t: id, k: id + ':p' + i, pic: r[0], q: r[1], a: r.slice(2) }); });
+  });
+  function lookupKey(k) {
+    var p = String(k).split(':'), id = p[0];
+    var m = /^([top]?)(\d+)$/.exec(p[1] || '');
+    if (!m || !TOPIC_BY_ID[id]) return null;
+    var n = Number(m[2]);
+    var bank = m[1] === 't' ? TYPE[id] : (m[1] === 'o' ? ORDER[id] : (m[1] === 'p' ? PICT[id] : RAW[id]));
+    var item = bank && bank[n];
+    if (!item) return null;
+    if (m[1] === 't') return { topic: id, text: item[0], answer: item[1].split('|')[0] };
+    if (m[1] === 'p') return { topic: id, text: item[0] + ' ' + item[1], answer: item[2] };
+    if (m[1] === 'o') return { topic: id, text: 'Order the words', answer: Array.isArray(item) ? item[0] : item };
+    return { topic: id, text: item[0], answer: item[1] };
+  }
+  var ICONS = { be: '\uD83D\uDE4B', hg: '\uD83C\uDF81', poss: '\uD83E\uDDE2', gen: '\uD83D\uDD11', ps: '\uD83D\uDD01', obj: '\uD83C\uDFAF',
+    qw: '\u2753', nat: '\uD83C\uDF0D', cls: '\u270F\uFE0F', subj: '\uD83D\uDCDA', rout: '\u23F0', fam: '\uD83D\uDC6A' };
+  TOPICS.forEach(function (t) { t.icon = ICONS[t.id] || '\u2022'; });
+  var TOPIC_BY_ID = {};
+  TOPICS.forEach(function (t) { TOPIC_BY_ID[t.id] = t; });
+
+  var NS = 'http://www.w3.org/2000/svg';
+  function $(id) { return document.getElementById(id); }
+  function h(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function sv(tag, attrs, text) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function plural(n) { return n === 1 ? 'station' : 'stations'; }
+  function pct(c, w) { return c + w ? Math.round(c / (c + w) * 100) : 0; }
+  function nota(c, w) { return c + w ? (c / (c + w) * 10).toFixed(1).replace('.', ',') : ''; }
+  function lsGet(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* storage unavailable */ } }
+  var MINUS = '−';
+  var BADGES = [
+    { e: '\uD83E\uDDED', n: 'Explorer' }, { e: '\uD83D\uDE82', n: 'Traveller' },
+    { e: '\uD83C\uDFC5', n: 'Champion' }, { e: '\uD83D\uDC51', n: 'Legend' }
+  ];
+  var LETTERS = ['A', 'B', 'C', 'D'];
+
+  /* ---- views ---- */
+  var view = 'setup', lastStudentView = 'setup';
+  function show(which) {
+    if (which !== 'teacher') lastStudentView = which;
+    view = which;
+    ['setup', 'game', 'end', 'teacher'].forEach(function (v) { $(v).hidden = v !== which; });
+    $('teacherBtn').textContent = which === 'teacher' ? 'Volver al juego' : 'Panel del profesor';
+    window.scrollTo(0, 0);
+  }
+
+  /* ---- results code (what the student sends to the teacher) ---- */
+  function b64enc(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+  function b64dec(s) { s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
+  function fnv(s) {
+    var x = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 0x01000193) >>> 0; }
+    return ('00000000' + x.toString(16)).slice(-8);
+  }
+  function newId() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-5); }
+
+  function makeCode(P) {
+    var tp = {};
+    Object.keys(P.topics).forEach(function (id) {
+      var t = P.topics[id];
+      if (t[0] + t[1] > 0) tp[id] = [t[0], t[1]];
+    });
+    var payload = {
+      v: 1, i: P.id, n: P.name, g: P.group, t: Date.now(),
+      s: P.pos, f: P.finished ? 1 : 0, ms: P.maxStreak, p: P.pts, b: P.badges.length, tp: tp, m: P.miss
+    };
+    var b = b64enc(JSON.stringify(payload));
+    return 'MG1-' + b + '-' + fnv(b);
+  }
+
+  function cleanPts(x) { x = Number(x); return isFinite(x) && x >= -99999 && x <= 99999 ? Math.floor(x) : 0; }
+  function cleanInt(x) { x = Number(x); return isFinite(x) && x >= 0 && x <= 9999 ? Math.floor(x) : 0; }
+  function parseCode(b, sum) {
+    try {
+      if (fnv(b) !== sum) return null;
+      var o = JSON.parse(b64dec(b));
+      if (!o || o.v !== 1 || typeof o.i !== 'string' || !/^[a-z0-9]{6,24}$/.test(o.i)) return null;
+      var tp = {};
+      Object.keys(o.tp || {}).forEach(function (id) {
+        if (TOPIC_BY_ID[id] && Array.isArray(o.tp[id])) tp[id] = [cleanInt(o.tp[id][0]), cleanInt(o.tp[id][1])];
+      });
+      var miss = {};
+      Object.keys(o.m || {}).forEach(function (k) {
+        if (lookupKey(k)) miss[k] = cleanInt(o.m[k]);
+      });
+      return {
+        name: String(o.n || '').trim().slice(0, 40),
+        group: String(o.g || '').trim().slice(0, 12),
+        t: (isFinite(Number(o.t)) && Number(o.t) > 0 && Number(o.t) < 4e12) ? Math.floor(Number(o.t)) : 0, pos: cleanInt(o.s), fin: o.f ? 1 : 0, ms: cleanInt(o.ms), pts: cleanPts(o.p), badges: Math.min(cleanInt(o.b), 20),
+        tp: tp, miss: miss, id: o.i
+      };
+    } catch (e) { return null; }
+  }
+
+  /* ============================================================
+     5. STUDENT SIDE
+     ============================================================ */
+  var P = null;
+  var pts = [], token = null;
+
+  var AVATARS = ['🦊', '🐼', '🐸', '🦁', '🐙', '🦄', '🐯', '🐧'];
+  var avatar = lsGet('mg-avatar');
+  if (AVATARS.indexOf(avatar) === -1) avatar = AVATARS[0];
+  var DECOR = ['🌳', '🏠', '🌷', '🌲', '🐑', '🌻', '🏫', '🌳'];
+  var REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  function buildBoard() {
+    var svg = $('board');
+    var N = CONFIG.boardSize, cols = N > 20 ? 6 : 5, rows = Math.ceil(N / cols);
+    var gx = Math.round(680 / (cols - 1)), gy = 125, ox = 85, oy = 75;
+    var W = ox * 2 + gx * (cols - 1), H = oy * 2 + gy * (rows - 1);
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svg.innerHTML = '';
+
+    var defs = sv('defs', {});
+    var grad = sv('linearGradient', { id: 'skyg', x1: '0', y1: '0', x2: '0', y2: '1' });
+    grad.appendChild(sv('stop', { offset: '0', style: 'stop-color:var(--sky1)' }));
+    grad.appendChild(sv('stop', { offset: '1', style: 'stop-color:var(--sky2)' }));
+    defs.appendChild(grad);
+    var clip = sv('clipPath', { id: 'boardclip' });
+    clip.appendChild(sv('rect', { x: 0, y: 0, width: W, height: H, rx: 24 }));
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+
+    var bg = sv('g', { 'clip-path': 'url(#boardclip)' });
+    bg.appendChild(sv('rect', { x: 0, y: 0, width: W, height: H, fill: 'url(#skyg)' }));
+    [[0.12, 0.08, 1], [0.5, 0.04, 0.8], [0.86, 0.1, 1.1]].forEach(function (c) {
+      var g = sv('g', { 'class': 'cloud', transform: 'translate(' + (W * c[0]) + ' ' + (H * c[1] + 24) + ') scale(' + c[2] + ')' });
+      g.appendChild(sv('ellipse', { cx: 0, cy: 0, rx: 34, ry: 14 }));
+      g.appendChild(sv('ellipse', { cx: 22, cy: -8, rx: 22, ry: 14 }));
+      g.appendChild(sv('ellipse', { cx: -20, cy: -6, rx: 18, ry: 12 }));
+      bg.appendChild(g);
+    });
+    bg.appendChild(sv('path', { 'class': 'hill1', d: 'M0 ' + H + ' L0 ' + (H - 70) + ' Q ' + (W * 0.25) + ' ' + (H - 140) + ' ' + (W * 0.5) + ' ' + (H - 80) + ' T ' + W + ' ' + (H - 90) + ' L ' + W + ' ' + H + ' Z' }));
+    bg.appendChild(sv('path', { 'class': 'hill2', d: 'M0 ' + H + ' L0 ' + (H - 40) + ' Q ' + (W * 0.3) + ' ' + (H - 90) + ' ' + (W * 0.6) + ' ' + (H - 45) + ' T ' + W + ' ' + (H - 50) + ' L ' + W + ' ' + H + ' Z' }));
+    svg.appendChild(bg);
+
+    for (var r = 0; r < rows - 1; r++) {
+      for (var i = 0; i < cols - 1; i++) {
+        svg.appendChild(sv('text', { x: ox + gx * (i + 0.5), y: oy + r * gy + gy / 2 + 8, 'class': 'decor' }, DECOR[(r * 5 + i) % DECOR.length]));
+      }
+    }
+
+    pts = [];
+    for (var n = 0; n < N; n++) {
+      var rr = Math.floor(n / cols), c = n % cols;
+      if (rr % 2 === 1) c = cols - 1 - c;
+      pts.push({ x: ox + c * gx, y: oy + rr * gy });
+    }
+    var d = pts.map(function (p, i) { return (i ? 'L' : 'M') + p.x + ' ' + p.y; }).join(' ');
+    svg.appendChild(sv('path', { d: d, 'class': 'track' }));
+    svg.appendChild(sv('path', { d: d, 'class': 'rail' }));
+
+    for (var k = 0; k < N; k++) {
+      var st = k + 1, p = pts[k];
+      var isBonus = CONFIG.bonusStations.indexOf(st) !== -1;
+      var isTrap = CONFIG.trapStations.indexOf(st) !== -1;
+      if (st === 1) {
+        svg.appendChild(sv('circle', { cx: p.x, cy: p.y, r: 27, 'class': 'stn begin' }));
+        svg.appendChild(sv('text', { x: p.x, y: p.y, 'class': 'semo' }, '🚩'));
+        svg.appendChild(sv('text', { x: p.x, y: p.y + 46, 'class': 'slabel' }, 'START'));
+      } else if (st === N) {
+        svg.appendChild(sv('circle', { cx: p.x, cy: p.y, r: 29, 'class': 'stn end' }));
+        svg.appendChild(sv('text', { x: p.x, y: p.y, 'class': 'semo big' }, '🏆'));
+        svg.appendChild(sv('text', { x: p.x, y: p.y + 48, 'class': 'slabel' }, 'FINISH'));
+      } else if (isBonus || isTrap) {
+        var spec = sv('g', { 'class': 'spec', 'data-st': String(st) });
+        spec.appendChild(sv('circle', { cx: p.x, cy: p.y, r: 22, 'class': 'stn ' + (isBonus ? 'bonus' : 'trap') }));
+        spec.appendChild(sv('text', { x: p.x, y: p.y, 'class': 'semo' }, isBonus ? '⭐' : '🚧'));
+        svg.appendChild(spec);
+      } else {
+        svg.appendChild(sv('circle', { cx: p.x, cy: p.y, r: 19, 'class': 'stn' }));
+        svg.appendChild(sv('text', { x: p.x, y: p.y, 'class': 'snum' }, String(st)));
+      }
+    }
+
+    token = sv('g', { 'class': 'token' });
+    var inner = sv('g', { 'class': 'hopper' });
+    inner.appendChild(sv('path', { d: 'M-9 18 L0 32 L9 18 Z', 'class': 'avp' }));
+    inner.appendChild(sv('circle', { cx: 0, cy: 0, r: 23, 'class': 'avc' }));
+    inner.appendChild(sv('text', { x: 0, y: 2, 'class': 'avt' }, P.avatar));
+    token.appendChild(inner);
+    placeToken();
+    svg.appendChild(token);
+
+    var lg = $('legend');
+    lg.innerHTML = '';
+    if (CONFIG.bonusStations.length) lg.appendChild(h('span', null, '⭐ Badge station (once)'));
+    if (CONFIG.trapStations.length) lg.appendChild(h('span', null, '🚧 Trap station ' + MINUS + CONFIG.specialMove + ' (once)'));
+    lg.appendChild(h('span', null, '🏆 Finish at station ' + N));
+  }
+  function placeToken() {
+    var p = pts[P.pos - 1];
+    token.style.transform = 'translate(' + p.x + 'px,' + (p.y - 40) + 'px)';
+  }
+  function markUsed(st) {
+    var g = $('board').querySelector('.spec[data-st="' + st + '"]');
+    if (g) g.classList.add('spec', 'used');
+  }
+  function hop() {
+    if (REDUCED || !token || !token.firstChild || !token.firstChild.animate) return;
+    token.firstChild.animate(
+      [{ transform: 'translateY(0)' }, { transform: 'translateY(-16px)' }, { transform: 'translateY(0)' }],
+      { duration: 260, easing: 'ease-out' }
+    );
+  }
+  function renderChip() {
+    var box = $('chips');
+    box.innerHTML = '';
+    var hud = h('div', 'hud');
+    hud.appendChild(h('div', 'av', P.avatar));
+    var mid = h('div', 'prog');
+    mid.appendChild(h('div', 'nm', P.name));
+    var bar = h('div', 'pbar');
+    var fill = h('i');
+    fill.style.width = Math.round((P.pos - 1) / Math.max(1, CONFIG.boardSize - 1) * 100) + '%';
+    bar.appendChild(fill);
+    mid.appendChild(bar);
+    mid.appendChild(h('div', 'pl', 'Station ' + P.pos + ' of ' + CONFIG.boardSize));
+    hud.appendChild(mid);
+    var pts = h('div', 'stat', '🪙 ' + P.pts);
+    pts.setAttribute('aria-label', P.pts + ' points');
+    hud.appendChild(pts);
+    var bdg = h('div', 'stat' + (P.badges.length ? '' : ' off'), P.badges.length ? P.badges.join('') : '🏅 0');
+    bdg.setAttribute('aria-label', P.badges.length + ' badges');
+    hud.appendChild(bdg);
+    var fire = h('div', 'stat' + (P.streak ? '' : ' off'), '🔥 ' + P.streak);
+    fire.setAttribute('aria-label', 'Streak ' + P.streak);
+    hud.appendChild(fire);
+    box.appendChild(hud);
+  }
+
+  var CONF = ['#ff5a3c', '#2f7df6', '#ffbf1f', '#8a5cf6', '#1c9a52'];
+  function burst(n, big) {
+    if (REDUCED) return;
+    var layer = $('fx');
+    var el = view === 'game' ? $('qCard') : $('endTitle');
+    var rc = el.getBoundingClientRect();
+    var ox = rc.left + rc.width / 2, oy = rc.top + Math.min(rc.height / 2, 120);
+    for (var i = 0; i < n; i++) {
+      var s = document.createElement('span');
+      s.className = 'conf' + (i % 4 === 0 ? ' st' : '');
+      if (i % 4 === 0) s.textContent = '⭐'; else s.style.background = CONF[i % CONF.length];
+      s.style.left = ox + 'px';
+      s.style.top = oy + 'px';
+      layer.appendChild(s);
+      var ang = Math.random() * Math.PI * 2, dist = 80 + Math.random() * (big ? 280 : 150);
+      var a = s.animate(
+        [{ transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+         { transform: 'translate(' + (Math.cos(ang) * dist) + 'px,' + (Math.sin(ang) * dist + 70) + 'px) rotate(' + Math.round(Math.random() * 540) + 'deg)', opacity: 0 }],
+        { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(.2,.7,.3,1)' }
+      );
+      (function (node, anim) { anim.onfinish = function () { node.remove(); }; })(s, a);
+    }
+  }
+  function feedbackFx(ok, bonus) {
+    if (REDUCED) return;
+    if (ok) { burst(bonus ? 34 : 16, false); return; }
+    var card = $('qCard');
+    if (card.animate) {
+      card.animate(
+        [{ transform: 'translateX(0)' }, { transform: 'translateX(-10px)' }, { transform: 'translateX(10px)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(0)' }],
+        { duration: 350 }
+      );
+    }
+  }
+
+  function renderRules() {
+    var box = $('rulesLine');
+    box.innerHTML = '';
+    var U = CONFIG.pointsPerAnswer;
+    var items = [
+      ['✅', 'Right answer', '+' + CONFIG.forwardCorrect + ' station, +' + U + ' points'],
+      ['❌', 'Wrong answer', MINUS + CONFIG.backWrong + ' station, ' + MINUS + U + ' points']
+    ];
+    items.push(['🔥', 'Right in a row', U + ' × the streak (' + U + ', ' + (U * 2) + ', ' + (U * 3) + '…)']);
+    items.push(['😬', 'Wrong in a row', MINUS + U + ' × the streak (' + MINUS + U + ', ' + MINUS + (U * 2) + '…)']);
+    if (CONFIG.streakBonus > 0) items.push(['🚀', CONFIG.streakGoal + ' right in a row', '+' + (CONFIG.forwardCorrect + CONFIG.streakBonus) + ' stations']);
+    if (CONFIG.useTimer) items.push(['⏱️', 'Seconds per question', CONFIG.timerSeconds + ' (Write and Order: ' + (CONFIG.timerSeconds * 2) + ')']);
+    if (CONFIG.bonusStations.length) items.push(['⭐', 'Badge station (once)', 'a badge!']);
+    if (CONFIG.trapStations.length) items.push(['🚧', 'Trap station (once)', MINUS + CONFIG.specialMove]);
+    items.push(['🏆', 'Reach station ' + CONFIG.boardSize, '']);
+    items.forEach(function (it) {
+      var c = h('span', 'rchip');
+      c.appendChild(h('span', 'remo', it[0]));
+      c.appendChild(h('span', null, it[1]));
+      if (it[2]) c.appendChild(h('b', null, it[2]));
+      box.appendChild(c);
+    });
+  }
+  function renderAvatars() {
+    var box = $('avatars');
+    box.innerHTML = '';
+    AVATARS.forEach(function (a, i) {
+      var b = h('button', 'avbtn', a);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', a === avatar ? 'true' : 'false');
+      b.setAttribute('aria-label', 'Player ' + (i + 1));
+      b.addEventListener('click', function () { avatar = a; lsSet('mg-avatar', a); renderAvatars(); });
+      box.appendChild(b);
+    });
+  }
+
+  function startGame() {
+    var name = $('pName').value.trim();
+    var group = $('pGroup').value.trim();
+    var chosen = TOPICS.filter(function (t) { return !CONFIG.activeTopics.length || CONFIG.activeTopics.indexOf(t.id) !== -1; }).map(function (t) { return t.id; });
+    if (!name || !group) { $('setupErr').textContent = 'Write your name and your class.'; return; }
+    if (!chosen.length) { $('setupErr').textContent = 'Choose at least one topic.'; return; }
+    var kinds = {};
+    ['c', 't', 'o', 'p'].forEach(function (k) { kinds[k] = CONFIG.questionTypes.indexOf(k) !== -1; });
+    if (!kinds.c && !kinds.t && !kinds.o && !kinds.p) { $('setupErr').textContent = 'Choose at least one question type.'; return; }
+    $('setupErr').textContent = '';
+    lsSet('mg-name', name);
+    lsSet('mg-group', group);
+    P = {
+      id: newId(), name: name, group: group, avatar: avatar, used: {}, pools: {}, pos: 1, streak: 0, maxStreak: 0, c: 0, w: 0, pts: 0, run: 0, bad: 0, badges: [],
+      topics: {}, miss: {}, sel: chosen, deck: [], current: null, locked: false,
+      over: false, finished: false, timer: CONFIG.useTimer, kinds: kinds
+    };
+    chosen.forEach(function (id) { P.topics[id] = [0, 0]; });
+    $('finishBtn').hidden = true;
+    show('game');
+    buildBoard();
+    renderChip();
+    newQuestion();
+  }
+
+  function fillQuestionText(el, text) {
+    el.innerHTML = '';
+    text.split('___').forEach(function (p, i) {
+      if (i > 0) el.appendChild(h('span', 'blank'));
+      el.appendChild(document.createTextNode(p));
+    });
+  }
+
+  var KIND_NAME = { c: 'Choose', t: 'Write', o: 'Order', p: 'Picture' };
+  function isChoice(q) { return q.kind === 'c' || q.kind === 'p'; }
+  function norm(s) {
+    return String(s).toLowerCase().replace(/[‘’´`]/g, "'").replace(/\s+/g, ' ').trim();
+  }
+  function normTyped(s) { return norm(s).replace(/[.!?]+$/, '').trim(); }
+  function correctText(q) {
+    if (isChoice(q)) return P.current.opts[P.current.correct].t;
+    if (q.kind === 't') return q.ans[0];
+    return q.s[0];
+  }
+
+  function topicWeight(id) {
+    var w = CONFIG.topicWeights && CONFIG.topicWeights[id];
+    return w > 0 ? w : 1;
+  }
+  function nextQuestion() {
+    var ids = P.sel.filter(function (id) { return QUESTIONS.some(function (q) { return q.t === id && P.kinds[q.kind]; }); });
+    if (!ids.length) { ids = P.sel; P.kinds = { c: true, t: true, o: true, p: true }; }
+    var total = 0;
+    ids.forEach(function (id) { total += topicWeight(id); });
+    var r = Math.random() * total, pick = ids[ids.length - 1];
+    for (var i = 0; i < ids.length; i++) {
+      r -= topicWeight(ids[i]);
+      if (r < 0) { pick = ids[i]; break; }
+    }
+    if (!P.pools[pick] || !P.pools[pick].length) {
+      P.pools[pick] = shuffle(QUESTIONS.filter(function (q) { return q.t === pick && P.kinds[q.kind]; }));
+    }
+    return P.pools[pick].pop();
+  }
+
+  function newQuestion() {
+    var q = nextQuestion();
+    P.current = { q: q };
+    P.locked = false;
+    $('topicPill').textContent = TOPIC_BY_ID[q.t].icon + ' ' + TOPIC_BY_ID[q.t].name + ' · ' + KIND_NAME[q.kind];
+    $('pic').hidden = true;
+    $('opts').hidden = true;
+    $('typeBox').hidden = true;
+    $('orderBox').hidden = true;
+
+    if (isChoice(q)) {
+      var opts = shuffle(q.a.map(function (t, i) { return { t: t, ok: i === 0 }; }));
+      P.current.opts = opts;
+      P.current.correct = opts.findIndex(function (o) { return o.ok; });
+      fillQuestionText($('qText'), q.q);
+      if (q.kind === 'p') { $('pic').textContent = q.pic; $('pic').hidden = false; }
+      var box = $('opts');
+      box.innerHTML = '';
+      opts.forEach(function (o, i) {
+        var b = h('button', 'opt');
+        b.type = 'button';
+        b.appendChild(h('span', 'k', LETTERS[i]));
+        b.appendChild(h('span', null, o.t));
+        b.addEventListener('click', function () { answer(i); });
+        box.appendChild(b);
+      });
+      box.hidden = false;
+    } else if (q.kind === 't') {
+      fillQuestionText($('qText'), q.q);
+      var inp = $('ansInput');
+      inp.value = '';
+      inp.disabled = false;
+      inp.className = 'ansin';
+      $('typeCheck').disabled = false;
+      $('typeBox').hidden = false;
+    } else {
+      $('qText').textContent = 'Put the words in order to make a sentence.';
+      var orig = q.s[0];
+      var words = orig.split(' ').map(function (t, i) { return { id: i, text: t }; });
+      var tries = 0;
+      do { shuffle(words); tries++; }
+      while (words.length > 1 && tries < 20 && words.map(function (w) { return w.text; }).join(' ') === orig);
+      P.current.bank = words;
+      P.current.line = [];
+      $('orderMsg').textContent = '';
+      $('orderCheck').disabled = false;
+      $('orderClear').disabled = false;
+      $('orderBox').hidden = false;
+      renderOrder();
+    }
+    $('feedback').hidden = true;
+    $('nextBtn').hidden = true;
+    renderChip();
+    startTimer();
+    if (q.kind === 't') $('ansInput').focus();
+  }
+
+  function tile(w, fn) {
+    var b = h('button', 'wtile', w.text);
+    b.type = 'button';
+    b.disabled = P.locked;
+    b.addEventListener('click', fn);
+    return b;
+  }
+  function renderOrder() {
+    var c = P.current, line = $('orderLine'), bank = $('orderBank');
+    line.innerHTML = '';
+    bank.innerHTML = '';
+    line.className = 'oline';
+    if (!c.line.length) line.appendChild(h('span', 'ph', 'Tap the words below'));
+    c.line.forEach(function (w) { line.appendChild(tile(w, function () { moveWord(w, false); })); });
+    c.bank.forEach(function (w) { bank.appendChild(tile(w, function () { moveWord(w, true); })); });
+  }
+  function moveWord(w, toLine) {
+    if (!P || P.locked) return;
+    var c = P.current, from = toLine ? c.bank : c.line, to = toLine ? c.line : c.bank;
+    from.splice(from.indexOf(w), 1);
+    to.push(w);
+    $('orderMsg').textContent = '';
+    renderOrder();
+  }
+  function clearOrder() {
+    if (!P || P.locked || P.current.q.kind !== 'o') return;
+    var c = P.current;
+    c.bank = c.bank.concat(c.line);
+    c.line = [];
+    $('orderMsg').textContent = '';
+    renderOrder();
+  }
+  function submitOrder() {
+    if (!P || P.locked || P.over || P.current.q.kind !== 'o') return;
+    var c = P.current;
+    if (c.bank.length) { $('orderMsg').textContent = 'Use all the words.'; return; }
+    P.locked = true;
+    stopTimer();
+    var mine = norm(c.line.map(function (w) { return w.text; }).join(' '));
+    var ok = c.q.s.some(function (s) { return norm(s) === mine; });
+    renderOrder();
+    $('orderLine').classList.add(ok ? 'correct' : 'wrong');
+    $('orderCheck').disabled = true;
+    $('orderClear').disabled = true;
+    grade(ok, false, c.q.s[0]);
+  }
+  function submitTyped() {
+    if (!P || P.locked || P.over || P.current.q.kind !== 't') return;
+    var inp = $('ansInput'), q = P.current.q;
+    if (!normTyped(inp.value)) { inp.focus(); return; }
+    P.locked = true;
+    stopTimer();
+    var mine = normTyped(inp.value);
+    var ok = q.ans.some(function (a) { return normTyped(a) === mine; });
+    inp.disabled = true;
+    inp.className = 'ansin ' + (ok ? 'correct' : 'wrong');
+    $('typeCheck').disabled = true;
+    grade(ok, false, q.ans[0]);
+  }
+
+  var timerFrame = null;
+  function stopTimer() { if (timerFrame) cancelAnimationFrame(timerFrame); timerFrame = null; }
+  function startTimer() {
+    stopTimer();
+    $('timerWrap').hidden = !P.timer;
+    if (!P.timer) return;
+    var total = CONFIG.timerSeconds * (isChoice(P.current.q) ? 1 : 2) * 1000;
+    var end = performance.now() + total;
+    var fill = $('timerFill'), secs = $('timerSecs');
+    function tick() {
+      var left = end - performance.now();
+      fill.style.transform = 'scaleX(' + Math.max(0, left / total) + ')';
+      secs.textContent = String(Math.ceil(Math.max(0, left) / 1000));
+      if (left <= 0) { timerFrame = null; timeUp(); return; }
+      timerFrame = requestAnimationFrame(tick);
+    }
+    timerFrame = requestAnimationFrame(tick);
+  }
+  function timeUp() {
+    if (!P || P.locked || P.over) return;
+    var q = P.current.q;
+    if (isChoice(q)) { answer(-1); return; }
+    P.locked = true;
+    if (q.kind === 't') {
+      $('ansInput').disabled = true;
+      $('typeCheck').disabled = true;
+    } else {
+      renderOrder();
+      $('orderCheck').disabled = true;
+      $('orderClear').disabled = true;
+    }
+    grade(false, true, correctText(q));
+  }
+
+  async function moveBy(n) {
+    var dir = n > 0 ? 1 : -1;
+    for (var i = 0; i < Math.abs(n); i++) {
+      var next = P.pos + dir;
+      if (next < 1 || next > CONFIG.boardSize) break;
+      P.pos = next;
+      placeToken();
+      hop();
+      renderChip();
+      await sleep(270);
+    }
+  }
+
+  function answer(idx) {
+    if (!P || P.locked || P.over || !isChoice(P.current.q)) return;
+    P.locked = true;
+    stopTimer();
+    var cur = P.current;
+    $('opts').querySelectorAll('.opt').forEach(function (b, i) {
+      b.disabled = true;
+      if (i === cur.correct) { b.classList.add('correct'); b.querySelector('.k').textContent = '✓'; }
+      else if (i === idx) { b.classList.add('wrong'); b.querySelector('.k').textContent = '✗'; }
+      else b.classList.add('dim');
+    });
+    grade(idx === cur.correct, idx === -1, correctText(cur.q));
+  }
+
+  async function grade(ok, timedOut, correctStr) {
+    var cur = P.current;
+    var tp = P.topics[cur.q.t];
+    var fb = $('feedback');
+    fb.innerHTML = '';
+    var steps, title, detail = null, tip = null;
+
+    if (ok) {
+      P.c++; tp[0]++; P.streak++; P.run++; P.bad = 0;
+      if (P.streak > P.maxStreak) P.maxStreak = P.streak;
+      steps = CONFIG.forwardCorrect;
+      title = 'Correct! +' + steps + ' ' + plural(steps);
+      if (CONFIG.streakBonus > 0 && P.streak >= CONFIG.streakGoal) {
+        steps += CONFIG.streakBonus;
+        P.streak = 0;
+        detail = CONFIG.streakGoal + ' right in a row! Streak bonus: +' + CONFIG.streakBonus;
+        title = 'Correct! +' + steps + ' ' + plural(steps);
+      }
+      fb.className = 'feedback good';
+    } else {
+      P.w++; tp[1]++; P.streak = 0; P.run = 0; P.bad++;
+      P.miss[cur.q.k] = (P.miss[cur.q.k] || 0) + 1;
+      steps = -CONFIG.backWrong;
+      title = (timedOut ? 'Time’s up! ' : 'Not quite. ') + MINUS + CONFIG.backWrong + ' ' + plural(CONFIG.backWrong);
+      detail = 'The answer is: ' + correctStr;
+      tip = 'Tip: ' + TOPIC_BY_ID[cur.q.t].tip;
+      fb.className = 'feedback bad';
+    }
+    var dp = CONFIG.pointsPerAnswer * (ok ? P.run : -P.bad);
+    P.pts += dp;
+    if (CONFIG.minPoints !== null && P.pts < CONFIG.minPoints) P.pts = CONFIG.minPoints;
+    var ptxt = (dp > 0 ? '+' : MINUS) + Math.abs(dp) + ' points' + ((ok ? P.run : P.bad) > 1 ? ' (' + (ok ? P.run + ' right' : P.bad + ' wrong') + ' in a row)' : '');
+    fb.appendChild(h('strong', null, title));
+    fb.appendChild(h('span', 'pts ' + (ok ? 'up' : 'down'), '🪙 ' + ptxt));
+    if (detail) fb.appendChild(h('span', null, detail));
+    if (tip) fb.appendChild(h('span', 'tip', tip));
+    fb.hidden = false;
+    feedbackFx(ok, ok && steps > CONFIG.forwardCorrect);
+    $('finishBtn').hidden = false;
+
+    await sleep(350);
+    await moveBy(steps);
+
+    if (P.pos < CONFIG.boardSize && !P.used[P.pos]) {
+      var extra = null, move = 0, badge = null;
+      if (CONFIG.bonusStations.indexOf(P.pos) !== -1) badge = BADGES[P.badges.length % BADGES.length];
+      else if (ok && CONFIG.trapStations.indexOf(P.pos) !== -1) { extra = 'Trap station! ' + MINUS + CONFIG.specialMove + '. It only works once, so next time you can pass.'; move = -CONFIG.specialMove; }
+      if (badge) {
+        P.used[P.pos] = true;
+        markUsed(P.pos);
+        P.badges.push(badge.e);
+        fb.appendChild(h('span', 'extra', 'New badge! ' + badge.e + ' ' + badge.n));
+        burst(40, false);
+        renderChip();
+        await sleep(700);
+      } else if (extra) {
+        P.used[P.pos] = true;
+        markUsed(P.pos);
+        fb.appendChild(h('span', 'extra', extra));
+        await sleep(450);
+        await moveBy(move);
+      }
+    }
+    renderChip();
+    if (P.pos >= CONFIG.boardSize) {
+      P.finished = true;
+      await sleep(600);
+      finishSession();
+      return;
+    }
+    $('nextBtn').hidden = false;
+    $('nextBtn').focus();
+  }
+
+  function finishSession() {
+    if (!P || P.over) return;
+    P.over = true;
+    stopTimer();
+    $('trophy').textContent = P.finished ? '\uD83C\uDFC6' : '\u2B50';
+    $('endTitle').textContent = P.finished ? 'You reached the last station!' : 'Session finished';
+    $('endSub').textContent = P.name + ', ' + P.c + ' right and ' + P.w + ' wrong (' + pct(P.c, P.w) + '%). Station ' + P.pos + ' of ' + CONFIG.boardSize + '. Points: ' + P.pts + '. Badges: ' + (P.badges.length ? P.badges.join(' ') : '0') + '.';
+    $('codeBox').value = makeCode(P);
+    $('codeLede').textContent = formCfg
+      ? 'Your results are sent automatically. Only if your teacher says they did not arrive, copy this code and send it.'
+      : 'Copy this code and send it to your teacher, so your results count. Do not change it.';
+    sendResults($('codeBox').value);
+    $('copyMsg').textContent = '';
+    $('copyMsg').className = 'msg';
+    var rev = $('review');
+    rev.innerHTML = '';
+    var list = P.sel.filter(function (id) { return P.topics[id][0] + P.topics[id][1] > 0; })
+      .sort(function (a, b) { return pct(P.topics[a][0], P.topics[a][1]) - pct(P.topics[b][0], P.topics[b][1]); });
+    list.forEach(function (id) {
+      var s = P.topics[id], p = pct(s[0], s[1]);
+      var row = h('div', 'rrow');
+      row.appendChild(h('span', null, TOPIC_BY_ID[id].name));
+      var bar = h('div', 'rbar');
+      var fill = h('i', p < 50 ? 'low' : (p < 75 ? 'mid' : ''));
+      fill.style.width = p + '%';
+      bar.appendChild(fill);
+      row.appendChild(bar);
+      row.appendChild(h('span', 'rnum', s[0] + '/' + (s[0] + s[1])));
+      rev.appendChild(row);
+    });
+    show('end');
+    if (P.finished) burst(70, true);
+  }
+
+  async function copyCode() {
+    var box = $('codeBox'), msg = $('copyMsg');
+    box.focus();
+    box.select();
+    try {
+      await navigator.clipboard.writeText(box.value);
+      msg.textContent = 'Copied. Now send it to your teacher.';
+      msg.className = 'msg ok';
+    } catch (e) {
+      msg.textContent = 'Press and hold the code, then choose Copy.';
+      msg.className = 'msg';
+    }
+  }
+
+  /* ---- automatic sending to a Google Form (optional, see CONFIG.formUrl) ---- */
+  function parseForm(url) {
+    try {
+      var u = new URL(url);
+      if (u.hostname !== 'docs.google.com') return null;
+      var m = /^(.*\/forms\/d\/e\/[^/]+)\/viewform/.exec(u.pathname);
+      if (!m) return null;
+      var cfg = { action: u.origin + m[1] + '/formResponse', name: null, group: null, code: null, answers: null, correct: null, wrong: null, percent: null, weakest: null, grade: null, points: null, badges: null };
+      var MAP = { NAME: 'name', CLASS: 'group', CODE: 'code', ANSWERS: 'answers', CORRECT: 'correct', WRONG: 'wrong', PERCENT: 'percent', WEAKEST: 'weakest', GRADE: 'grade', POINTS: 'points', BADGES: 'badges' };
+      u.searchParams.forEach(function (v, k) {
+        if (!/^entry\.\d+$/.test(k)) return;
+        var key = MAP[String(v).trim().toUpperCase()];
+        if (key) cfg[key] = k;
+      });
+      return cfg.code ? cfg : null;
+    } catch (e) { return null; }
+  }
+  var formCfg = CONFIG.formUrl ? parseForm(CONFIG.formUrl) : null;
+
+  async function sendResults(code) {
+    var st = $('sendMsg');
+    if (!formCfg) { st.hidden = true; return; }
+    st.hidden = false;
+    st.className = 'msg';
+    st.textContent = 'Sending your results…';
+    var body = new URLSearchParams();
+    var weakest = '-', wp = 101;
+    Object.keys(P.topics).forEach(function (id) {
+      var t = P.topics[id];
+      if (t[0] + t[1] < 2) return;
+      var p = pct(t[0], t[1]);
+      if (p < wp) { wp = p; weakest = TOPIC_BY_ID[id].name + ' (' + p + '%)'; }
+    });
+    if (formCfg.name) body.append(formCfg.name, P.name);
+    if (formCfg.group) body.append(formCfg.group, P.group);
+    if (formCfg.answers) body.append(formCfg.answers, String(P.c + P.w));
+    if (formCfg.correct) body.append(formCfg.correct, String(P.c));
+    if (formCfg.wrong) body.append(formCfg.wrong, String(P.w));
+    if (formCfg.percent) body.append(formCfg.percent, String(pct(P.c, P.w)));
+    if (formCfg.weakest) body.append(formCfg.weakest, weakest);
+    if (formCfg.grade) body.append(formCfg.grade, nota(P.c, P.w));
+    if (formCfg.points) body.append(formCfg.points, String(P.pts));
+    if (formCfg.badges) body.append(formCfg.badges, String(P.badges.length));
+    body.append(formCfg.code, code);
+    try {
+      await fetch(formCfg.action, { method: 'POST', mode: 'no-cors', body: body });
+      st.textContent = '✅ Your results were sent to your teacher!';
+      st.className = 'msg ok';
+    } catch (e) {
+      st.textContent = 'We could not send your results. Copy the code below and send it to your teacher.';
+      st.className = 'msg bad';
+    }
+  }
+
+  /* ============================================================
+     6. TEACHER SIDE (only offered to people who can edit the page)
+     ============================================================ */
+  var tdb = null, subs = [], tGroup = '', teacherReady = false, loadTimer = null;
+
+  function aggregate(rows) {
+    var map = {};
+    rows.forEach(function (r) {
+      var key = (r.group || '').toLowerCase() + '|' + (r.name || '').toLowerCase();
+      var s = map[key];
+      if (!s) s = map[key] = { name: r.name || 'Sin nombre', group: r.group || '', sessions: 0, c: 0, w: 0, pts: 0, badges: 0, topics: {}, last: 0 };
+      s.sessions++;
+      s.pts += Number(r.pts) || 0;
+      s.badges += Number(r.badges) || 0;
+      if (r.t >= s.last) { s.last = r.t; s.name = r.name || s.name; }
+      Object.keys(r.tp || {}).forEach(function (id) {
+        var t = s.topics[id] || (s.topics[id] = [0, 0]);
+        t[0] += r.tp[id][0]; t[1] += r.tp[id][1];
+        s.c += r.tp[id][0]; s.w += r.tp[id][1];
+      });
+    });
+    return Object.keys(map).map(function (k) { return map[k]; })
+      .sort(function (a, b) { return (a.group + a.name).localeCompare(b.group + b.name, 'es'); });
+  }
+  function weakest(s) {
+    var best = null, bp = 101;
+    Object.keys(s.topics).forEach(function (id) {
+      var t = s.topics[id];
+      if (t[0] + t[1] < 3) return;
+      var p = pct(t[0], t[1]);
+      if (p < bp) { bp = p; best = id; }
+    });
+    return best ? TOPIC_BY_ID[best].name + ' (' + bp + '%)' : '—';
+  }
+  function fmtDate(t) {
+    if (!t) return '—';
+    try { return new Date(t).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+    catch (e) { return '—'; }
+  }
+  function accCell(c, w) {
+    var p = pct(c, w);
+    var span = h('span', 'acc');
+    var bar = h('span', 'rbar');
+    var fill = h('i', p < 50 ? 'low' : (p < 75 ? 'mid' : ''));
+    fill.style.width = p + '%';
+    bar.appendChild(fill);
+    span.appendChild(bar);
+    span.appendChild(document.createTextNode(c + w ? p + '%' : '—'));
+    return span;
+  }
+
+  function renderTeacher() {
+    var groups = [];
+    subs.forEach(function (r) { if (r.group && groups.indexOf(r.group) === -1) groups.push(r.group); });
+    groups.sort(function (a, b) { return a.localeCompare(b, 'es'); });
+    if (tGroup && groups.indexOf(tGroup) === -1) tGroup = '';
+    var sel = $('tGroup');
+    sel.innerHTML = '';
+    var o0 = h('option', null, 'Todas'); o0.value = ''; sel.appendChild(o0);
+    groups.forEach(function (g) { var o = h('option', null, g); o.value = g; sel.appendChild(o); });
+    sel.value = tGroup;
+
+    var rows = subs.filter(function (r) { return !tGroup || r.group === tGroup; });
+    var students = aggregate(rows);
+    var totC = 0, totW = 0;
+    students.forEach(function (s) { totC += s.c; totW += s.w; });
+    $('tSummary').textContent = students.length
+      ? students.length + (students.length === 1 ? ' alumno, ' : ' alumnos, ') + rows.length + (rows.length === 1 ? ' sesión, ' : ' sesiones, ') + (totC + totW) + ' respuestas, ' + pct(totC, totW) + '% de acierto en la clase.'
+      : '';
+    $('tEmpty').hidden = students.length > 0;
+    $('tTable').parentNode.hidden = students.length === 0;
+
+    var body = $('tRows');
+    body.innerHTML = '';
+    students.forEach(function (s) {
+      var tr = h('tr', 'srow');
+      tr.tabIndex = 0;
+      tr.setAttribute('aria-expanded', 'false');
+      tr.appendChild(h('td', null, s.name));
+      tr.appendChild(h('td', null, s.group));
+      tr.appendChild(h('td', null, String(s.sessions)));
+      tr.appendChild(h('td', null, String(s.c + s.w)));
+      var ta = h('td'); ta.appendChild(accCell(s.c, s.w)); tr.appendChild(ta);
+      tr.appendChild(h('td', null, nota(s.c, s.w) || '\u2014'));
+      tr.appendChild(h('td', null, String(s.pts)));
+      tr.appendChild(h('td', null, String(s.badges)));
+      tr.appendChild(h('td', null, weakest(s)));
+      tr.appendChild(h('td', null, fmtDate(s.last)));
+      var detail = h('tr', 'sdetail');
+      detail.hidden = true;
+      var dt = h('td'); dt.colSpan = 10;
+      var chips = h('div', 'tchips');
+      TOPICS.forEach(function (t) {
+        var v = s.topics[t.id];
+        if (!v || v[0] + v[1] === 0) return;
+        var p = pct(v[0], v[1]);
+        chips.appendChild(h('span', 'tchip ' + (p < 50 ? 'low' : (p >= 75 ? 'ok' : '')), t.name + ' ' + p + '% (' + v[0] + '/' + (v[0] + v[1]) + ')'));
+      });
+      dt.appendChild(chips);
+      detail.appendChild(dt);
+      function toggle() {
+        detail.hidden = !detail.hidden;
+        tr.setAttribute('aria-expanded', detail.hidden ? 'false' : 'true');
+      }
+      tr.addEventListener('click', toggle);
+      tr.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+      body.appendChild(tr);
+      body.appendChild(detail);
+    });
+
+    // class by topic
+    var byTopic = {};
+    rows.forEach(function (r) {
+      Object.keys(r.tp || {}).forEach(function (id) {
+        var t = byTopic[id] || (byTopic[id] = [0, 0]);
+        t[0] += r.tp[id][0]; t[1] += r.tp[id][1];
+      });
+    });
+    var tbox = $('tTopics');
+    tbox.innerHTML = '';
+    Object.keys(byTopic).sort(function (a, b) { return pct(byTopic[a][0], byTopic[a][1]) - pct(byTopic[b][0], byTopic[b][1]); })
+      .forEach(function (id) {
+        var s = byTopic[id], p = pct(s[0], s[1]);
+        var row = h('div', 'rrow');
+        row.appendChild(h('span', null, TOPIC_BY_ID[id].name));
+        var bar = h('div', 'rbar');
+        var fill = h('i', p < 50 ? 'low' : (p < 75 ? 'mid' : ''));
+        fill.style.width = p + '%';
+        bar.appendChild(fill);
+        row.appendChild(bar);
+        row.appendChild(h('span', 'rnum', p + '% · ' + (s[0] + s[1])));
+        tbox.appendChild(row);
+      });
+    if (!Object.keys(byTopic).length) tbox.appendChild(h('p', 'lede', 'Sin datos todavía.'));
+
+    // most missed questions
+    var miss = {};
+    rows.forEach(function (r) {
+      Object.keys(r.miss || {}).forEach(function (k) { miss[k] = (miss[k] || 0) + r.miss[k]; });
+    });
+    var mbox = $('tMissed');
+    mbox.innerHTML = '';
+    var top = Object.keys(miss).sort(function (a, b) { return miss[b] - miss[a]; }).slice(0, 8);
+    top.forEach(function (k) {
+      var item = lookupKey(k);
+      if (!item) return;
+      var row = h('div', 'mrow');
+      row.appendChild(h('b', null, String(miss[k])));
+      var d = h('div');
+      d.appendChild(h('span', null, item.text));
+      d.appendChild(h('small', null, TOPIC_BY_ID[item.topic].name + ' · respuesta: ' + item.answer));
+      row.appendChild(d);
+      mbox.appendChild(row);
+    });
+    if (!top.length) mbox.appendChild(h('p', 'lede', 'Sin datos todavía.'));
+  }
+
+  var tstore = null;
+  function localLoad() {
+    try {
+      var o = JSON.parse(localStorage.getItem('mg-submissions') || '{}');
+      return Object.keys(o).map(function (id) { return Object.assign({ id: id }, o[id]); });
+    } catch (e) { return []; }
+  }
+  function localSave() {
+    var o = {};
+    subs.forEach(function (r) { var c = Object.assign({}, r); delete c.id; o[r.id] = c; });
+    localStorage.setItem('mg-submissions', JSON.stringify(o));
+  }
+  function startLocalTeacher() {
+    function check() {
+      if (location.hash !== '#profesor') return;
+      if (!tstore) {
+        subs = localLoad();
+        tstore = {
+          put: async function (id, doc) {
+            subs = subs.filter(function (r) { return r.id !== id; });
+            subs.push(Object.assign({ id: id }, doc));
+            localSave();
+            renderTeacher();
+          },
+          del: async function (id) {
+            subs = subs.filter(function (r) { return r.id !== id; });
+            localSave();
+            renderTeacher();
+          }
+        };
+        setTimeout(syncSheet, 0);
+        $('tNotice').className = 'msg';
+        $('tNotice').textContent = 'Modo local: los resultados se guardan solo en este navegador y en este equipo. Para verlos otra vez, abre la misma dirección con #profesor al final.';
+      }
+      $('teacherBtn').hidden = false;
+      renderTeacher();
+      show('teacher');
+    }
+    check();
+    window.addEventListener('hashchange', check);
+  }
+
+  async function startTeacher() {
+    var api = window.claude && window.claude.use ? window.claude : null;
+    if (!api) { startLocalTeacher(); return; }
+    var user = await api.use('user');
+    if (!user) return;
+    var canEdit = await user.canEdit();
+    if (!canEdit) return;
+    $('teacherBtn').hidden = false;
+    var tdb = await api.use('db');
+    if (!tdb) {
+      $('tNotice').textContent = 'No se puede guardar ni leer resultados en esta vista. Abre la página con tu cuenta de Claude.';
+      $('tResults').hidden = true;
+      return;
+    }
+    tstore = {
+      put: function (id, doc) { return tdb.collection('submissions').doc(id).set(doc); },
+      del: function (id) { return tdb.collection('submissions').doc(id).delete(); }
+    };
+    loadTimer = setTimeout(function () {
+      $('tNotice').textContent = 'Los resultados tardan en cargar. Puede que no estén al día.';
+    }, 10000);
+    tdb.collection('submissions').onSnapshot(function (snap) {
+      clearTimeout(loadTimer);
+      if (!snap.metadata.fromCache) $('tNotice').textContent = '';
+      subs = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      renderTeacher();
+    }, function (e) {
+      clearTimeout(loadTimer);
+      $('tNotice').textContent = 'No se pueden leer los resultados (' + (e && e.code ? e.code : 'error') + ').';
+    });
+    renderTeacher();
+  }
+
+  async function importCodes(textArg) {
+    var msg = $('importMsg');
+    function say(t, cls) { msg.textContent = t; msg.className = 'msg ' + (cls || ''); }
+    if (!tstore) { say('No hay conexión con los datos.', 'bad'); return; }
+    var fromBox = typeof textArg !== 'string';
+    var text = fromBox ? $('importBox').value : textArg;
+    var re = /MG1-([A-Za-z0-9_-]+)-([0-9a-f]{8})(?![A-Za-z0-9_-])/g;
+    var m, found = 0, added = 0, dup = 0, bad = 0, fail = 0;
+    var known = {};
+    subs.forEach(function (r) { known[r.id] = true; });
+    var list = [];
+    while ((m = re.exec(text)) !== null) { found++; list.push(m); }
+    if (!found) { say('No he encontrado ningún código. Empiezan por MG1-.', 'bad'); return; }
+    $('importBtn').disabled = true;
+    say('Importando…');
+    for (var i = 0; i < list.length; i++) {
+      var o = parseCode(list[i][1], list[i][2]);
+      if (!o) { bad++; continue; }
+      if (known[o.id]) { dup++; continue; }
+      try {
+        await tstore.put(o.id, {
+          name: o.name, group: o.group, t: o.t, pos: o.pos, fin: o.fin, ms: o.ms, pts: o.pts, badges: o.badges, tp: o.tp, miss: o.miss
+        });
+        known[o.id] = true;
+        added++;
+      } catch (e) { fail++; }
+    }
+    $('importBtn').disabled = false;
+    var parts = [added + ' importados'];
+    if (dup) parts.push(dup + ' ya estaban');
+    if (bad) parts.push(bad + ' con errores (copiados a medias)');
+    if (fail) parts.push(fail + ' no se pudieron guardar');
+    say(parts.join(', ') + '.', bad || fail ? 'bad' : 'ok');
+    if (added && !bad && !fail && fromBox) $('importBox').value = '';
+  }
+
+  async function syncSheet() {
+    var msg = $('importMsg');
+    if (!CONFIG.sheetCsvUrl) return;
+    msg.className = 'msg';
+    msg.textContent = 'Cargando desde Google Sheets\u2026';
+    try {
+      var r = await fetch(CONFIG.sheetCsvUrl, { cache: 'no-store' });
+      if (!r.ok) throw new Error('http ' + r.status);
+      await importCodes(await r.text());
+    } catch (e) {
+      msg.textContent = 'No se pudo leer la hoja de cálculo. Comprueba que está publicada en la web como CSV.';
+      msg.className = 'msg bad';
+    }
+  }
+
+  function csvCell(v) {
+    var s = String(v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  async function exportCsv() {
+    var api = window.claude && window.claude.use ? window.claude : null;
+    var dl = api ? await api.use('downloads') : null;
+    var msg = $('importMsg');
+    var rows = subs.filter(function (r) { return !tGroup || r.group === tGroup; });
+    var students = aggregate(rows);
+    var head = ['Alumno', 'Clase', 'Sesiones', 'Respuestas', 'Aciertos', 'Fallos', '% acierto', 'Nota sobre 10', 'Puntos', 'Insignias', 'Última sesión']
+      .concat(TOPICS.map(function (t) { return t.name + ' %'; }));
+    var lines = [head.map(csvCell).join(';')];
+    students.forEach(function (s) {
+      var cells = [s.name, s.group, s.sessions, s.c + s.w, s.c, s.w, pct(s.c, s.w), nota(s.c, s.w), s.pts, s.badges, s.last ? new Date(s.last).toISOString().slice(0, 16).replace('T', ' ') : ''];
+      TOPICS.forEach(function (t) { var v = s.topics[t.id]; cells.push(v && v[0] + v[1] ? pct(v[0], v[1]) : ''); });
+      lines.push(cells.map(csvCell).join(';'));
+    });
+    var csv = '﻿' + lines.join('\r\n');
+    try {
+      if (dl) {
+        await dl.save({ filename: 'resultados-mind-the-gap.csv', data: csv });
+      } else {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+        a.download = 'resultados-mind-the-gap.csv';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      }
+    } catch (e) {
+      if (!e || e.code !== 'declined') { msg.textContent = 'No se pudo descargar el archivo.'; msg.className = 'msg bad'; }
+    }
+  }
+
+  var clearArmed = null;
+  async function clearAll() {
+    var btn = $('clearBtn'), msg = $('clearMsg');
+    if (!tstore) return;
+    if (!clearArmed) {
+      btn.textContent = 'Pulsa otra vez para borrar todo';
+      clearArmed = setTimeout(function () { clearArmed = null; btn.textContent = 'Borrar todos los resultados'; }, 5000);
+      return;
+    }
+    clearTimeout(clearArmed); clearArmed = null;
+    btn.disabled = true;
+    var n = 0, failed = 0;
+    var ids = subs.map(function (r) { return r.id; });
+    for (var i = 0; i < ids.length; i++) {
+      try { await tstore.del(ids[i]); n++; } catch (e) { failed++; }
+    }
+    btn.disabled = false;
+    btn.textContent = 'Borrar todos los resultados';
+    msg.textContent = failed ? n + ' borrados, ' + failed + ' con error.' : n + ' borrados.';
+    msg.className = 'msg ' + (failed ? 'bad' : 'ok');
+  }
+
+  /* ---- wiring ---- */
+  renderRules();
+  renderAvatars();
+  $('pName').value = lsGet('mg-name');
+  $('pGroup').value = lsGet('mg-group');
+  $('startBtn').addEventListener('click', startGame);
+  $('nextBtn').addEventListener('click', function () { if (P && !P.over) newQuestion(); });
+  $('finishBtn').addEventListener('click', finishSession);
+  $('copyBtn').addEventListener('click', copyCode);
+  $('typeCheck').addEventListener('click', submitTyped);
+  $('ansInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); submitTyped(); } });
+  $('orderCheck').addEventListener('click', submitOrder);
+  $('orderClear').addEventListener('click', clearOrder);
+  $('againBtn').addEventListener('click', startGame);
+  $('resetBtn').addEventListener('click', function () { show('setup'); });
+  $('teacherBtn').addEventListener('click', function () { show(view === 'teacher' ? lastStudentView : 'teacher'); });
+  $('importBtn').addEventListener('click', function () { importCodes(); });
+  $('syncBtn').addEventListener('click', syncSheet);
+  $('syncBtn').hidden = !CONFIG.sheetCsvUrl;
+  $('exportBtn').addEventListener('click', exportCsv);
+  $('clearBtn').addEventListener('click', clearAll);
+  $('tGroup').addEventListener('change', function () { tGroup = $('tGroup').value; renderTeacher(); });
+
+  document.addEventListener('keydown', function (e) {
+    if (view !== 'game' || !P || P.over || e.ctrlKey || e.metaKey || e.altKey) return;
+    var tag = (document.activeElement && document.activeElement.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    var k = e.key.toLowerCase();
+    var map = { a: 0, b: 1, c: 2, d: 3, '1': 0, '2': 1, '3': 2, '4': 3 };
+    if (map.hasOwnProperty(k) && !P.locked && isChoice(P.current.q)) { answer(map[k]); return; }
+    if (k === 'enter' && !$('nextBtn').hidden && document.activeElement !== $('nextBtn')) {
+      e.preventDefault();
+      newQuestion();
+    }
+  });
+
+  startTeacher().catch(function () { /* teacher tools stay hidden */ });
+})();
+</script>
+
+</body>
+</html>
