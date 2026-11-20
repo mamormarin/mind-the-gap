@@ -543,7 +543,7 @@ h1, h2, h3, legend, .qtext { font-family: var(--font-display); font-weight: 600;
     topicWeights: { ps: 3, obj: 3 }, // higher number = the topic appears more often (default 1)
     questionTypes: ['p', 'c', 't', 'o'],  // p picture, c choose, t write, o order the words
     formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSe1xfpM1N3nRjLmAvVrUMiXxoAmShXht5hPJFRbU9o8zK0LOQ/viewform?usp=pp_url&entry.334452785=NAME&entry.1677914657=CLASS&entry.344124679=ANSWERS&entry.902426838=CORRECT&entry.1753889502=WRONG&entry.104753518=PERCENT&entry.115320584=POINTS&entry.397177721=BADGES&entry.1323009035=WEAKEST&entry.1568978483=GRADE&entry.292701859=CODE',                     // Google Form pre-filled link: results are sent here automatically
-    sheetCsvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRzkS7j7HZPkF191Awr3AJHzTebwNzrIOyEOeEu6dH8ggiT9JiFg6TCmXM29GWMpxsKFsKaUSHjGJ-E/pub?gid=1793581584&single=true&output=csv',                 // link of the form's Google Sheet published as CSV: the teacher panel reads it
+    sheetCsvUrl: '',                 // link of the form's Google Sheet published as CSV: the teacher panel reads it
     specialMove: 2,
     useTimer: true,                  // every question has a countdown (false = no timer)
     timerSeconds: 20
@@ -1725,8 +1725,9 @@ h1, h2, h3, legend, .qtext { font-family: var(--font-display); font-weight: 600;
     if (c.bank.length) { $('orderMsg').textContent = 'Use all the words.'; return; }
     P.locked = true;
     stopTimer();
-    var mine = norm(c.line.map(function (w) { return w.text; }).join(' '));
-    var ok = c.q.s.some(function (s) { return norm(s) === mine; });
+    function flat(x) { return norm(x).replace(/[.,!?;:]/g, '').replace(/\s+/g, ' ').trim(); }
+    var mine = flat(c.line.map(function (w) { return w.text; }).join(' '));
+    var ok = c.q.s.some(function (s) { return flat(s) === mine; });
     renderOrder();
     $('orderLine').classList.add(ok ? 'correct' : 'wrong');
     $('orderCheck').disabled = true;
